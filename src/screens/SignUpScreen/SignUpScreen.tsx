@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     SafeAreaView,
     ScrollView,
@@ -17,19 +17,100 @@ import RNPickerSelect from 'react-native-picker-select';
 import * as Yup from 'yup';
 import { NavigationProps } from '../../navigation/types';
 
+import { auth } from '../../services/firebaseConfig';
+import {
+    createUserWithEmailAndPassword
+} from 'firebase/auth';
+
+
 const SignUpSchema = Yup.object().shape({
     lastName: Yup.string().required('Фамилия обязательна'),
     firstName: Yup.string().required('Имя обязательно'),
     middleName: Yup.string(),
-    phone: Yup.string()
-        .matches(/^\+7\s?\(\d{3}\)\s?\d{3}-\d{2}-\d{2}$/, 'Некорректный номер')
-        .required('Номер телефона обязателен'),
+    phone: Yup.string().matches(/^\+7\d{10}$/, 'Некорректный номер').required('Номер телефона обязателен'),
     email: Yup.string().email('Некорректный email').required('Email обязателен'),
     subject: Yup.string().required('Выберите предмет'),
 });
 
 const SignUpScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProps>();
+
+    // To track whether we are in "Code Verification" phase
+    const [isCodeStep, setIsCodeStep] = useState(false);
+    const [tempEmail, setTempEmail] = useState('');
+    const [codeInput, setCodeInput] = useState('');
+
+    // Step 1: Handle Sign-Up Process
+    const handleSignUp = async (values: any) => {
+        try {
+            // Register the user in Firebase Authentication with a placeholder password
+            await createUserWithEmailAndPassword(auth, values.email, 'someplaceholderpassword');
+
+            // Store the email to track which user is verifying
+            setTempEmail(values.email);
+
+            // Request a verification code from the backend
+            const response = await fetch('https://sendemailcode-xjqcjc5s3a-uc.a.run.app', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: values.email }),
+            });
+
+            if (response.ok) {
+                setIsCodeStep(true);  // Move to the next step (code verification)
+            } else {
+                const errorData = await response.json();
+                console.error('Error sending code:', errorData.error);
+            }
+        } catch (error: any) {
+            console.error('SignUp Error:', error.message);
+        };
+    }
+
+    // Step 2: Handle Email Code Verification
+    const handleVerifyCode = async () => {
+        try {
+            const response = await fetch('https://verifyemailcode-xjqcjc5s3a-uc.a.run.app', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: tempEmail, code: codeInput }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Code verified successfully', data);
+
+            } else {
+                const errorData = await response.json();
+                console.error('Verification error:', errorData.error);
+            }
+
+        } catch (error: any) {
+            console.error('Verification error:', error.message);
+        }
+    };
+
+    // If the user is in the verification step, show the code input
+    if (isCodeStep) {
+        return (
+            <SafeAreaView style={styles.safeArea}>
+                <Text>Enter the code we sent to {tempEmail}:</Text>
+                <TextInput
+                    value={codeInput}
+                    onChangeText={setCodeInput}
+                    keyboardType="numeric"
+                    style={styles.input}
+                />
+                <TouchableOpacity onPress={handleVerifyCode} style={styles.submitButton}>
+                    <Text style={styles.submitButtonText}>Verify Code</Text>
+                </TouchableOpacity>
+            </SafeAreaView>
+        );
+    }
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -74,9 +155,7 @@ const SignUpScreen: React.FC = () => {
                                 subject: '',
                             }}
                             validationSchema={SignUpSchema}
-                            onSubmit={(values) => {
-                                console.log(values);
-                            }}
+                            onSubmit={handleSignUp}
                         >
                             {({
                                 handleChange,
@@ -172,7 +251,7 @@ const SignUpScreen: React.FC = () => {
                                                     fontSize: 16,
                                                     paddingVertical: 12,
                                                     paddingHorizontal: 12,
-                                                    width: '100%',  // Full width
+                                                    width: '100%',
                                                 },
                                                 inputAndroid: {
                                                     color: 'black',
@@ -181,9 +260,8 @@ const SignUpScreen: React.FC = () => {
                                                     color: '#999',
                                                 },
                                             }}
-                                            // iOS-specific fixes
                                             textInputProps={{
-                                                pointerEvents: 'none',  // Allow parent to handle touches
+                                                pointerEvents: 'none',
                                             }}
                                             fixAndroidTouchableBug={true}
                                             useNativeAndroidPickerStyle={false}
