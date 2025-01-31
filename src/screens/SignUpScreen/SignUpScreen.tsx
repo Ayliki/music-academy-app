@@ -40,6 +40,10 @@ const SignUpScreen: React.FC = () => {
     const [tempEmail, setTempEmail] = useState('');
     const [codeInput, setCodeInput] = useState('');
 
+    const handleGoBack = () => {
+        return ("hey");
+    }
+
     // Step 1: Handle Sign-Up Process
     const handleSignUp = async (values: any) => {
         try {
@@ -98,16 +102,48 @@ const SignUpScreen: React.FC = () => {
     if (isCodeStep) {
         return (
             <SafeAreaView style={styles.safeArea}>
-                <Text>Enter the code we sent to {tempEmail}:</Text>
-                <TextInput
-                    value={codeInput}
-                    onChangeText={setCodeInput}
-                    keyboardType="numeric"
-                    style={styles.input}
-                />
-                <TouchableOpacity onPress={handleVerifyCode} style={styles.submitButton}>
-                    <Text style={styles.submitButtonText}>Verify Code</Text>
-                </TouchableOpacity>
+                {/* Header with Two Circles and Logo */}
+                <View style={styles.headerContainer}>
+                    <View style={styles.circle1} />
+                    <View style={styles.circle2} />
+                    <Image
+                        source={require('../../../assets/images/AK-logo.png')}
+                        style={styles.logo}
+                        resizeMode="contain"
+                    />
+                </View>
+
+                {/* Container holding all verification UI */}
+                <View style={styles.formContainer}>
+                    {/* Verification Message */}
+                    <Text style={styles.verificationText}>
+                        Введите код, отправленный на почту
+                    </Text>
+
+                    {/* Code Input Label */}
+                    <Text style={styles.codeLabel}>Код</Text>
+
+                    {/* Code Input Field */}
+                    <TextInput
+                        value={codeInput}
+                        onChangeText={setCodeInput}
+                        keyboardType="numeric"
+                        style={styles.input}
+                        placeholder="Введите Код"
+                        maxLength={6}
+                        textAlign="center"
+                    />
+
+                    {/* Buttons - Back & Verify */}
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+                            <Text style={styles.backButtonText}>Назад</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.verifyButton} onPress={handleVerifyCode}>
+                            <Text style={styles.verifyButtonText}>Войти</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
             </SafeAreaView>
         );
     }
@@ -316,7 +352,7 @@ const styles = StyleSheet.create({
         borderRadius: 406 / 2,
         top: -169,
         left: -35,
-        backgroundColor: '#FCD24E',
+        backgroundColor: '#FFC600',
         opacity: 0.2,
     },
     circle2: {
@@ -326,15 +362,72 @@ const styles = StyleSheet.create({
         borderRadius: 342 / 2,
         top: -134,
         left: 209,
-        backgroundColor: '#FCD24E',
+        backgroundColor: '#FFC600',
         opacity: 0.2,
     },
+
     logo: {
         position: 'absolute',
         width: 289,
         height: 121,
         top: 110,
         left: 53,
+    },
+    verificationText: {
+        top: 10,
+        width: 301,
+        fontSize: 24,
+        fontFamily: 'Outfit',
+        fontWeight: '600',
+        lineHeight: 30.24,
+        textAlign: 'center',
+        color: '#000',
+        marginBottom: 15
+    },
+    codeLabel: {
+        width: 32,
+        height: 20,
+        marginTop: 20,
+        fontFamily: 'Outfit',
+        fontWeight: '600',
+        fontSize: 16,
+        lineHeight: 20.16,
+        marginBottom: 8,
+        alignSelf: 'flex-start',
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: 328,
+        marginTop: 30,
+    },
+    backButton: {
+        width: 148,
+        height: 45,
+        backgroundColor: '#FFC67C',
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    backButtonText: {
+        fontSize: 18,
+        fontFamily: 'Outfit',
+        fontWeight: '700',
+        color: '#000',
+    },
+    verifyButton: {
+        width: 148,
+        height: 45,
+        backgroundColor: '#FFE27D',
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    verifyButtonText: {
+        fontSize: 18,
+        fontFamily: 'Outfit',
+        fontWeight: '700',
+        color: '#000',
     },
     formContainer: {
         paddingHorizontal: 24,
@@ -367,19 +460,23 @@ const styles = StyleSheet.create({
     // Labels for input fields
     label: {
         marginBottom: 8,
+        fontFamily: 'Outfit',
         color: '#000',
         fontWeight: '600',
+        lineHeight: 20.16,
         fontSize: 16,
         alignSelf: 'flex-start',
     },
     input: {
         width: 328,
-        borderWidth: 1,
-        borderColor: '#ccc',
+        borderWidth: 0.6,
+        borderColor: '#6C6A6A',
         borderRadius: 8,
         padding: 12,
         marginBottom: 16,
         backgroundColor: '#fff',
+        fontWeight: '400',
+        lineHeight: 18.9,
         fontSize: 15,
     },
 
