@@ -16,11 +16,20 @@ import { Formik } from 'formik';
 import RNPickerSelect from 'react-native-picker-select';
 import * as Yup from 'yup';
 import { NavigationProps } from '../../navigation/types';
-
 import { auth } from '../../services/firebaseConfig';
 import {
     createUserWithEmailAndPassword
 } from 'firebase/auth';
+import { useRoute } from '@react-navigation/native';
+
+interface FormValues {
+    lastName?: string;
+    firstName?: string;
+    middleName?: string;
+    phone?: string;
+    email?: string;
+    subject?: string;
+}
 
 
 const SignUpSchema = Yup.object().shape({
@@ -34,19 +43,26 @@ const SignUpSchema = Yup.object().shape({
 
 const SignUpScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProps>();
+    const route = useRoute();
+    const formValues = (route.params as FormValues) || {};
 
     // To track whether we are in "Code Verification" phase
     const [isCodeStep, setIsCodeStep] = useState(false);
     const [tempEmail, setTempEmail] = useState('');
     const [codeInput, setCodeInput] = useState('');
 
+    const [signupData, setSignupData] = useState<any>({});
+
     const handleGoBack = () => {
-        return ("hey");
-    }
+        setIsCodeStep(false);
+    };
 
     // Step 1: Handle Sign-Up Process
     const handleSignUp = async (values: any) => {
         try {
+            // Save the values so we can restore if user navigates back from code step
+            setSignupData(values);
+
             // Register the user in Firebase Authentication with a placeholder password
             await createUserWithEmailAndPassword(auth, values.email, 'someplaceholderpassword');
 
@@ -148,6 +164,16 @@ const SignUpScreen: React.FC = () => {
         );
     }
 
+    const mergedInitialValues: FormValues = {
+        lastName: signupData.lastName ?? formValues.lastName ?? '',
+        firstName: signupData.firstName ?? formValues.firstName ?? '',
+        middleName: signupData.middleName ?? formValues.middleName ?? '',
+        phone: signupData.phone ?? formValues.phone ?? '',
+        email: signupData.email ?? formValues.email ?? '',
+        subject: signupData.subject ?? formValues.subject ?? '',
+    };
+
+
     return (
         <SafeAreaView style={styles.safeArea}>
             <KeyboardAvoidingView
@@ -182,14 +208,8 @@ const SignUpScreen: React.FC = () => {
                         </Text>
 
                         <Formik
-                            initialValues={{
-                                lastName: '',
-                                firstName: '',
-                                middleName: '',
-                                phone: '',
-                                email: '',
-                                subject: '',
-                            }}
+                            enableReinitialize
+                            initialValues={mergedInitialValues}
                             validationSchema={SignUpSchema}
                             onSubmit={handleSignUp}
                         >
@@ -276,6 +296,7 @@ const SignUpScreen: React.FC = () => {
                                                 color: '#999'
                                             }}
                                             onValueChange={(value) => setFieldValue('subject', value)}
+                                            value={values.subject}
                                             items={[
                                                 { label: 'Сольфеджио', value: 'solfeggio' },
                                                 { label: 'Актерское мастерство', value: 'acting' },
@@ -329,7 +350,7 @@ const SignUpScreen: React.FC = () => {
                     </View>
                 </ScrollView>
             </KeyboardAvoidingView>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 };
 
