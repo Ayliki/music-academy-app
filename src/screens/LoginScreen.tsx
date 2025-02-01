@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
     View,
     Text,
@@ -7,11 +7,14 @@ import {
     StyleSheet,
     SafeAreaView,
     Image,
+    Alert
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationProps } from '../navigation/types';
 import { Formik } from 'formik';
 import * as Yup from 'yup';
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "../services/firebaseConfig";
 
 const EmailSchema = Yup.object().shape({
     email: Yup.string().email('Неверный email').required('Введите email'),
@@ -20,11 +23,120 @@ const EmailSchema = Yup.object().shape({
 const LoginScreen = () => {
     const navigation = useNavigation<NavigationProps>();
 
+    // To track whether we are in "Code Verification" phase
+    const [isCodeStep, setIsCodeStep] = useState(false);
+    const [tempEmail, setTempEmail] = useState('');
+    const [codeInput, setCodeInput] = useState('');
+
     const handleLogin = async (values: { email: string }) => {
-        const { email } = values;
-        console.log('Email submitted:', email);
-        navigation.navigate('EnterCode', { email });
+        try {
+            const { email } = values;
+
+
+            const userDocRef = doc(db, "users", email.toLowerCase());
+            const userDoc = await getDoc(userDocRef);
+
+            if (!userDoc.exists) {
+                Alert.alert('Ошибка', 'Такой пользователь не зарегистрирован');
+                return;
+            }
+
+            const response = await fetch('https://sendemailcode-xjqcjc5s3a-uc.a.run.app', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: values.email }),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                Alert.alert('Ошибка', errorData.error || 'Не удалось отправить код');
+                return;
+            }
+
+            // If success:
+            setTempEmail(email);
+            setIsCodeStep(true);
+        } catch (error: any) {
+            Alert.alert('Ошибка', error.message);
+        }
     };
+
+    const handleGoBack = () => {
+        setIsCodeStep(false);
+    };
+
+    const handleVerifyCode = async () => {
+        try {
+            const response = await fetch('https://verifyemailcode-xjqcjc5s3a-uc.a.run.app', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ email: tempEmail, code: codeInput }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                console.log('Code verified successfully', data);
+
+            } else {
+                const errorData = await response.json();
+                console.error('Verification error:', errorData.error);
+            }
+
+        } catch (error: any) {
+            console.error('Verification error:', error.message);
+        }
+    };
+
+    if (isCodeStep) {
+        return (
+            <SafeAreaView style={styles.safeArea}>
+                {/* Header with Two Circles and Logo */}
+                <View style={styles.headerContainer}>
+                    <View style={styles.circle1} />
+                    <View style={styles.circle2} />
+                    <Image
+                        source={require('../../assets/images/AK-logo.png')}
+                        style={styles.logo}
+                        resizeMode="contain"
+                    />
+                </View>
+
+                {/* Container holding all verification UI */}
+                <View style={styles.formContainer}>
+                    {/* Verification Message */}
+                    <Text style={styles.verificationText}>
+                        Введите код, отправленный на почту
+                    </Text>
+
+                    {/* Code Input Label */}
+                    <Text style={styles.codeLabel}>Код</Text>
+
+                    {/* Code Input Field */}
+                    <TextInput
+                        value={codeInput}
+                        onChangeText={setCodeInput}
+                        keyboardType="numeric"
+                        style={styles.input}
+                        placeholder="Введите Код"
+                        maxLength={6}
+                        textAlign="center"
+                    />
+
+                    {/* Buttons - Back & Verify */}
+                    <View style={styles.buttonContainer}>
+                        <TouchableOpacity style={styles.backButton} onPress={handleGoBack}>
+                            <Text style={styles.backButtonText}>Назад</Text>
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.verifyButton} onPress={handleVerifyCode}>
+                            <Text style={styles.verifyButtonText}>Войти</Text>
+                        </TouchableOpacity>
+                    </View>
+                </View>
+            </SafeAreaView>
+        )
+    }
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -72,6 +184,8 @@ const LoginScreen = () => {
     );
 };
 
+
+/* -------------- STYLES -------------- */
 const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
@@ -101,13 +215,69 @@ const styles = StyleSheet.create({
         backgroundColor: '#FFC600',
         opacity: 0.2,
     },
+
     logo: {
         position: 'absolute',
         width: 289,
         height: 121,
         top: 110,
         left: 53,
-        resizeMode: 'contain',
+    },
+    verificationText: {
+        top: 10,
+        width: 301,
+        fontSize: 24,
+        fontFamily: 'Outfit',
+        fontWeight: '600',
+        lineHeight: 30.24,
+        textAlign: 'center',
+        color: '#000',
+        marginBottom: 15
+    },
+    codeLabel: {
+        width: 32,
+        height: 20,
+        marginTop: 20,
+        fontFamily: 'Outfit',
+        fontWeight: '600',
+        fontSize: 16,
+        lineHeight: 20.16,
+        marginBottom: 8,
+        alignSelf: 'flex-start',
+    },
+    buttonContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: 328,
+        marginTop: 30,
+    },
+    backButton: {
+        width: 148,
+        height: 45,
+        backgroundColor: '#FFC67C',
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    backButtonText: {
+        fontSize: 18,
+        fontFamily: 'Outfit',
+        fontWeight: '700',
+        color: '#000',
+    },
+    verifyButton: {
+        width: 148,
+        height: 45,
+        backgroundColor: '#FFE27D',
+        borderRadius: 8,
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    verifyButtonText: {
+        fontSize: 18,
+        fontFamily: 'Outfit',
+        fontWeight: '700',
+        color: '#000',
     },
     formContainer: {
         paddingHorizontal: 24,
