@@ -28,7 +28,7 @@ interface FormValues {
     middleName?: string;
     phone?: string;
     email?: string;
-    subject?: string;
+    selection?: string;
 }
 
 
@@ -38,19 +38,22 @@ const SignUpSchema = Yup.object().shape({
     middleName: Yup.string(),
     phone: Yup.string().matches(/^\+7\d{10}$/, 'Некорректный номер').required('Номер телефона обязателен'),
     email: Yup.string().email('Некорректный email').required('Email обязателен'),
-    subject: Yup.string().required('Выберите предмет'),
+    selection: Yup.string().required('Пожалуйста, сделайте выбор'),
 });
 
 const SignUpScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProps>();
     const route = useRoute();
-    const formValues = (route.params as FormValues) || {};
+
+    // For toggling between parent (группа) and teacher (предмет):
+    const [isTeacher, setIsTeacher] = useState(false);
 
     // To track whether we are in "Code Verification" phase
     const [isCodeStep, setIsCodeStep] = useState(false);
     const [tempEmail, setTempEmail] = useState('');
     const [codeInput, setCodeInput] = useState('');
 
+    const formValues = (route.params as FormValues) || {};
     const [signupData, setSignupData] = useState<any>({});
 
     const handleGoBack = () => {
@@ -170,7 +173,7 @@ const SignUpScreen: React.FC = () => {
         middleName: signupData.middleName ?? formValues.middleName ?? '',
         phone: signupData.phone ?? formValues.phone ?? '',
         email: signupData.email ?? formValues.email ?? '',
-        subject: signupData.subject ?? formValues.subject ?? '',
+        selection: signupData.selection ?? formValues.selection ?? '',
     };
 
 
@@ -224,7 +227,7 @@ const SignUpScreen: React.FC = () => {
                             }) => (
                                 <View>
                                     {/* Фамилия */}
-                                    <Text style={styles.label}>Фамилия</Text>
+                                    <Text style={styles.label}>{isTeacher ? 'Фамилия' : 'Фамилия ребенка'}</Text>
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Введите фамилию"
@@ -237,7 +240,7 @@ const SignUpScreen: React.FC = () => {
                                     )}
 
                                     {/* Имя */}
-                                    <Text style={styles.label}>Имя</Text>
+                                    <Text style={styles.label}>{isTeacher ? 'Имя' : 'Имя ребенка'}</Text>
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Введите имя"
@@ -250,7 +253,7 @@ const SignUpScreen: React.FC = () => {
                                     )}
 
                                     {/* Отчество (необязательно) */}
-                                    <Text style={styles.label}>Отчество</Text>
+                                    <Text style={styles.label}>{isTeacher ? 'Отчество' : 'Отчество ребенка (при наличии)'}</Text>
                                     <TextInput
                                         style={styles.input}
                                         placeholder="Введите отчество"
@@ -260,7 +263,7 @@ const SignUpScreen: React.FC = () => {
                                     />
 
                                     {/* Телефон */}
-                                    <Text style={styles.label}>Номер телефона</Text>
+                                    <Text style={styles.label}>{isTeacher ? 'Номер телефона' : 'Номер телефона родителя'}</Text>
                                     <TextInput
                                         style={styles.input}
                                         placeholder="+7 (999) 959-99-99"
@@ -291,17 +294,31 @@ const SignUpScreen: React.FC = () => {
                                     <View style={styles.pickerContainer}>
                                         <RNPickerSelect
                                             placeholder={{
-                                                label: 'Выберите предмет',
+                                                label: isTeacher
+                                                    ? 'Выберите предмет'
+                                                    : 'Выберите группу',
                                                 value: '',
                                                 color: '#999'
                                             }}
                                             onValueChange={(value) => setFieldValue('subject', value)}
-                                            value={values.subject}
-                                            items={[
-                                                { label: 'Сольфеджио', value: 'solfeggio' },
-                                                { label: 'Актерское мастерство', value: 'acting' },
-                                                { label: 'Вокал', value: 'vocal' },
-                                            ]}
+                                            value={values.selection}
+                                            items={
+                                                isTeacher
+                                                    ? [
+                                                        { label: 'Сольфеджио', value: 'solfeggio' },
+                                                        { label: 'Актерское мастерство', value: 'acting' },
+                                                        { label: 'Вокал', value: 'vocal' },
+                                                    ]
+                                                    : [
+                                                        { label: 'Teens 1', value: 'Teens1' },
+                                                        { label: 'Teens 2', value: 'Teens2' },
+                                                        { label: 'Kids 1', value: 'Kids1' },
+                                                        { label: 'Kids 2', value: 'Kids2' },
+                                                        { label: 'Junior 1', value: 'Junior1' },
+                                                        { label: 'Junior 2', value: 'Junior2' },
+                                                        { label: 'Junior 3', value: 'Junior3' },
+                                                    ]
+                                            }
                                             style={{
                                                 inputIOS: {
                                                     color: 'black',
@@ -309,9 +326,6 @@ const SignUpScreen: React.FC = () => {
                                                     paddingVertical: 12,
                                                     paddingHorizontal: 12,
                                                     width: '100%',
-                                                },
-                                                inputAndroid: {
-                                                    color: 'black',
                                                 },
                                                 placeholder: {
                                                     color: '#999',
@@ -326,8 +340,8 @@ const SignUpScreen: React.FC = () => {
                                     </View>
 
 
-                                    {touched.subject && errors.subject && (
-                                        <Text style={styles.error}>{errors.subject}</Text>
+                                    {touched.selection && errors.selection && (
+                                        <Text style={styles.error}>{errors.selection}</Text>
                                     )}
 
                                     {/* Submit button */}
@@ -344,6 +358,13 @@ const SignUpScreen: React.FC = () => {
                                             Уже есть аккаунт? <Text style={styles.loginText}>Войти</Text>
                                         </Text>
                                     </TouchableOpacity>
+
+                                    {/* Toggle to Teacher */}
+                                    {!isTeacher && (
+                                        <TouchableOpacity onPress={() => setIsTeacher(true)}>
+                                            <Text style={[styles.link, { marginTop: 10 }]}>Я педагог!</Text>
+                                        </TouchableOpacity>
+                                    )}
                                 </View>
                             )}
                         </Formik>
@@ -540,7 +561,6 @@ const styles = StyleSheet.create({
     },
     loginLinkContainer: {
         alignItems: 'center',
-        marginBottom: 16,
     },
 
     // Уже есть аккаунт?
@@ -554,5 +574,14 @@ const styles = StyleSheet.create({
         fontSize: 18,
         fontWeight: 'bold',
         color: '#000',
+    },
+
+    link: {
+        fontFamily: 'Outfit',
+        fontSize: 18,
+        lineHeight: 22.68,
+        color: '#AB8104',
+        fontWeight: 700,
+        textAlign: 'center',
     },
 });
