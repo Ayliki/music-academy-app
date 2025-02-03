@@ -60,6 +60,7 @@ const ProfileScreen: React.FC = () => {
                     phone: data.phone || '',
                     email: currentUser.email,
                     profilePicture: data.profilePicture,
+                    role: data.role,
                 });
             } else {
                 setInitialValues({
@@ -69,6 +70,7 @@ const ProfileScreen: React.FC = () => {
                     phone: '',
                     email: currentUser.email || '',
                     profilePicture: undefined,
+                    role: 'default',
                 });
             }
         } catch (error) {
@@ -85,6 +87,8 @@ const ProfileScreen: React.FC = () => {
     if (isLoading || !initialValues) {
         return <LoadingOverlay visible={true} />;
     }
+
+    const isTeacher = initialValues.role === 'teacher';
 
     const handleAddFromGallery = async () => {
         // Request permission to access the media library
@@ -199,9 +203,11 @@ const ProfileScreen: React.FC = () => {
             <ScrollView contentContainerStyle={[styles.scrollContent, { paddingHorizontal: width * 0.05 }]}>
                 {/* Profile picture, name, and email section */}
                 <View style={styles.avatarContainer}>
-                    <TouchableOpacity onPress={() => setIsPhotoOptionsVisible(true)}>
-                        <ProfilePictureComponent profilePicture={initialValues.profilePicture} />
-                    </TouchableOpacity>
+                    {!isTeacher && (
+                        <TouchableOpacity onPress={() => setIsPhotoOptionsVisible(true)}>
+                            <ProfilePictureComponent profilePicture={initialValues.profilePicture} />
+                        </TouchableOpacity>
+                    )}
                     <Text style={styles.userName}>
                         {initialValues.lastName} {initialValues.firstName}
                     </Text>
@@ -232,7 +238,7 @@ const ProfileScreen: React.FC = () => {
                     }) => (
                         <View style={styles.formContainer}>
                             {/* Фамилия ребенка */}
-                            <Text style={styles.label}>Фамилия ребенка</Text>
+                            <Text style={styles.label}>{isTeacher ? "Фамилия" : "Фамилия ребенка"}</Text>
                             <TextInput
                                 style={styles.input}
                                 placeholder="Иванова"
@@ -245,7 +251,7 @@ const ProfileScreen: React.FC = () => {
                             )}
 
                             {/* Имя ребенка */}
-                            <Text style={styles.label}>Имя ребенка</Text>
+                            <Text style={styles.label}>{isTeacher ? "Имя" : "Имя ребенка"}</Text>
                             <TextInput
                                 style={styles.input}
                                 placeholder="Алиса"
@@ -258,7 +264,7 @@ const ProfileScreen: React.FC = () => {
                             )}
 
                             {/* Отчество ребенка (при наличии) */}
-                            <Text style={styles.label}>Отчество ребенка (при наличии)</Text>
+                            <Text style={styles.label}>{isTeacher ? "Отчество (при наличии)" : "Отчество ребенка (при наличии)"}</Text>
                             <TextInput
                                 style={styles.input}
                                 placeholder="Андреевна"
@@ -271,7 +277,7 @@ const ProfileScreen: React.FC = () => {
                             )}
 
                             {/* Номер телефона родителя */}
-                            <Text style={styles.label}>Номер телефона родителя</Text>
+                            <Text style={styles.label}>{isTeacher ? "Номер телефона" : "Номер телефона родителя"}</Text>
                             <TextInput
                                 style={styles.input}
                                 placeholder="+7 (999) 959-49-69"
