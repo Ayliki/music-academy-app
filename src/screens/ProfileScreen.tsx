@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import { doc, getDoc } from 'firebase/firestore';
 import { Formik } from 'formik';
+import CustomAlert from '../components/CustomAlert';
 import { UserProfile } from '../services/userService';
 import { updateUserProfile } from '../services/userService';
 import ProfilePictureComponent from '../components/ProfilePicture';
@@ -35,6 +36,7 @@ const ProfileScreen: React.FC = () => {
     const currentUser = auth.currentUser;
     const [initialValues, setInitialValues] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
+    const [isAlertVisible, setIsAlertVisible] = useState(false);
 
     // Fetch user data from Firestore
     const fetchUserData = async () => {
@@ -84,6 +86,8 @@ const ProfileScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.safeArea}>
+            {/* Pop up Alert */}
+            <CustomAlert visible={isAlertVisible} onClose={() => setIsAlertVisible(false)} />
             {/* Header */}
             <View style={[styles.headerContainer, { paddingHorizontal: width * 0.05 }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -109,7 +113,7 @@ const ProfileScreen: React.FC = () => {
                     onSubmit={async (values) => {
                         try {
                             await updateUserProfile(values);
-                            console.log('Profile updated successfully!');
+                            setIsAlertVisible(true);
                         } catch (error: any) {
                             console.error('Error saving profile:', error);
                         }
