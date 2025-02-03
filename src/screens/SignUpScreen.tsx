@@ -1,10 +1,17 @@
 import React, { useState } from 'react';
 import { SafeAreaView, StyleSheet, ScrollView } from 'react-native';
-import Header from '../../components/Header';
-import SignupForm, { SignupFormValues } from '../../components/SignUpForm';
-import SignupVerificationForm from '../../components/SignUpVerficiationForm';
-import { auth } from '../../services/firebaseConfig';
+import Header from '../components/Header';
+import SignupForm, { SignupFormValues } from '../components/SignupForm';
+import SignupVerificationForm from '../components/SignupVerficiationForm';
+import { auth } from '../services/firebaseConfig';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/types';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../services/firebaseConfig';
+
+type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'SignUp'>;
 
 const SignUpScreen: React.FC = () => {
     const [isCodeStep, setIsCodeStep] = useState(false);
@@ -19,6 +26,8 @@ const SignUpScreen: React.FC = () => {
         selection: '',
     });
 
+    const navigation = useNavigation<NavigationProp>();
+
     // Step 1: Handle Sign-Up Process
     const handleSignUp = async (values: SignupFormValues) => {
         try {
@@ -26,6 +35,15 @@ const SignUpScreen: React.FC = () => {
 
             await createUserWithEmailAndPassword(auth, values.email, 'someplaceholderpassword');
             setTempEmail(values.email);
+
+            await setDoc(doc(db, 'users', values.email.toLowerCase()), {
+                lastName: values.lastName,
+                firstName: values.firstName,
+                middleName: values.middleName,
+                phone: values.phone,
+                email: values.email,
+                selection: values.selection,
+            });
 
             // Request a verification code from the backend
             const response = await fetch('https://sendemailcode-xjqcjc5s3a-uc.a.run.app', {
@@ -55,6 +73,7 @@ const SignUpScreen: React.FC = () => {
             if (response.ok) {
                 const data = await response.json();
                 console.log('Code verified successfully', data);
+                navigation.navigate('Profile');
             } else {
                 const errorData = await response.json();
                 console.error('Verification error:', errorData.error);

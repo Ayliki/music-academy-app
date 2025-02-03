@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Alert } from 'react-native';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '../services/firebaseConfig';
+import { auth, db } from '../services/firebaseConfig';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 export const useAuth = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -41,7 +42,7 @@ export const useAuth = () => {
         }
     };
 
-    const verifyCode = async () => {
+    const verifyCode = async (): Promise<boolean> => {
         try {
             const response = await fetch('https://verifyemailcode-xjqcjc5s3a-uc.a.run.app', {
                 method: 'POST',
@@ -51,12 +52,30 @@ export const useAuth = () => {
             if (response.ok) {
                 const data = await response.json();
                 console.log('Code verified successfully', data);
+                return true;
             } else {
                 const errorData = await response.json();
                 console.error('Verification error:', errorData.error);
+                Alert.alert('Ошибка', errorData.error || 'Ошибка верификации');
+                return false;
             }
         } catch (error: any) {
             console.error('Verification error:', error.message);
+            Alert.alert('Ошибка', error.message);
+            return false;
+        }
+    };
+
+    const login = async (onSuccess: () => void): Promise<void> => {
+        const verified = await verifyCode();
+        if (verified) {
+            try {
+                await signInWithEmailAndPassword(auth, tempEmail, 'someplaceholderpassword');
+                onSuccess();
+            } catch (error: any) {
+                console.error('Error signing in:', error.message);
+                Alert.alert('Ошибка', error.message);
+            }
         }
     };
 
@@ -74,6 +93,7 @@ export const useAuth = () => {
         setCodeInput,
         sendLoginCode,
         verifyCode,
+        login,
         resetAuth,
     };
 };

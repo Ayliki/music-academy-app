@@ -4,6 +4,7 @@ export type RootStackParamList = {
     Login: undefined;
     SignUp: undefined;
     Home: undefined;
+    Profile: undefined;
     EnterCode: { email: string };
 };
 
