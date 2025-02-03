@@ -7,7 +7,8 @@ import {
     StyleSheet,
     SafeAreaView,
     Image,
-    Alert
+    Alert,
+    Modal
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationProps } from '../navigation/types';
@@ -15,12 +16,13 @@ import { Formik } from 'formik';
 import * as Yup from 'yup';
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "../services/firebaseConfig";
+import LoadingScreen from '../components/LoadingOverlay';
 
 const EmailSchema = Yup.object().shape({
     email: Yup.string().email('Неверный email').required('Введите email'),
 });
 
-const LoginScreen = () => {
+const LoginScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProps>();
 
     // To track whether we are in "Code Verification" phase
@@ -28,37 +30,48 @@ const LoginScreen = () => {
     const [tempEmail, setTempEmail] = useState('');
     const [codeInput, setCodeInput] = useState('');
 
+    const [showConfirmModal, setShowConfirmModal] = useState(false);
+
+    const [isLoading, setIsLoading] = useState(false);
+
+
     const handleLogin = async (values: { email: string }) => {
         try {
+            setIsLoading(true);
             const { email } = values;
 
-
-            const userDocRef = doc(db, "users", email.toLowerCase());
+            // Check if user exists in Firestore
+            const userDocRef = doc(db, 'users', email.toLowerCase());
             const userDoc = await getDoc(userDocRef);
 
             if (!userDoc.exists) {
                 Alert.alert('Ошибка', 'Такой пользователь не зарегистрирован');
+                setIsLoading(false);
                 return;
             }
 
+            // Send code
             const response = await fetch('https://sendemailcode-xjqcjc5s3a-uc.a.run.app', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: values.email }),
+                body: JSON.stringify({ email }),
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
                 Alert.alert('Ошибка', errorData.error || 'Не удалось отправить код');
+                setIsLoading(false);
                 return;
             }
 
-            // If success:
+            setIsLoading(false);
             setTempEmail(email);
             setIsCodeStep(true);
         } catch (error: any) {
             Alert.alert('Ошибка', error.message);
+            setIsLoading(false);
         }
+
     };
 
     const handleGoBack = () => {
@@ -69,9 +82,7 @@ const LoginScreen = () => {
         try {
             const response = await fetch('https://verifyemailcode-xjqcjc5s3a-uc.a.run.app', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: tempEmail, code: codeInput }),
             });
 
@@ -103,17 +114,14 @@ const LoginScreen = () => {
                     />
                 </View>
 
-                {/* Container holding all verification UI */}
+                {/* Verification UI */}
                 <View style={styles.formContainer}>
-                    {/* Verification Message */}
                     <Text style={styles.verificationText}>
                         Введите код, отправленный на почту
                     </Text>
 
-                    {/* Code Input Label */}
                     <Text style={styles.codeLabel}>Код</Text>
 
-                    {/* Code Input Field */}
                     <TextInput
                         value={codeInput}
                         onChangeText={setCodeInput}
@@ -135,8 +143,9 @@ const LoginScreen = () => {
                     </View>
                 </View>
             </SafeAreaView>
-        )
+        );
     }
+
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -163,19 +172,82 @@ const LoginScreen = () => {
                                 keyboardType="email-address"
                                 autoCapitalize="none"
                             />
-                            {touched.email && errors.email && <Text style={styles.error}>{errors.email}</Text>}
+                            {touched.email && errors.email && (
+                                <Text style={styles.error}>{errors.email}</Text>
+                            )}
 
-                            <TouchableOpacity style={styles.submitButton} onPress={handleSubmit as any}>
-                                <Text style={styles.submitButtonText}>Отправить код</Text>
+                            <TouchableOpacity
+                                style={styles.submitButton}
+                                onPress={() => {
+                                    if (errors.email) {
+                                        Alert.alert('Ошибка', errors.email);
+                                        return;
+                                    }
+                                    setShowConfirmModal(true);
+                                }}
+                                disabled={isCodeStep}
+                            >
+                                <Text style={styles.submitButtonText}>
+                                    {isCodeStep ? 'Загрузка...' : 'Отправить код'}
+                                </Text>
                             </TouchableOpacity>
 
                             <View style={styles.loginLinkContainer}>
                                 <TouchableOpacity onPress={() => navigation.navigate('SignUp')}>
                                     <Text style={styles.loginLink}>
-                                        Еще нет аккаунта? <Text style={styles.loginText}>Зарегистрироваться</Text>
+                                        Еще нет аккаунта?{' '}
+                                        <Text style={styles.loginText}>Зарегистрироваться</Text>
                                     </Text>
                                 </TouchableOpacity>
                             </View>
+
+                            {/* "Внимание!" confirmation modal */}
+                            <Modal
+                                visible={showConfirmModal}
+                                transparent
+                                animationType="fade"
+                            >
+                                <View style={styles.modalOverlay}>
+                                    <View style={styles.modalContainer}>
+
+                                        {/* Close (X) button in top-right */}
+                                        <TouchableOpacity
+                                            style={styles.closeButton}
+                                            onPress={() => setShowConfirmModal(false)}
+                                        >
+                                            <Text style={{ fontWeight: 'bold', fontSize: 18 }}>×</Text>
+                                        </TouchableOpacity>
+
+                                        <Text style={styles.modalTitle}>Внимание!</Text>
+                                        <Text style={styles.modalText}>
+                                            Убедитесь, что Вы верно ввели адрес эл. почты.
+                                        </Text>
+
+                                        {/* Two buttons in a column */}
+                                        <View style={styles.modalButtonColumn}>
+                                            <TouchableOpacity
+                                                style={styles.modalButtonCheck}
+                                                onPress={() => setShowConfirmModal(false)}
+                                            >
+                                                <Text style={styles.checkBtnText}>Проверить</Text>
+                                            </TouchableOpacity>
+
+                                            <TouchableOpacity
+                                                style={styles.modalButtonSend}
+                                                onPress={() => {
+                                                    setShowConfirmModal(false);
+                                                    handleSubmit();
+                                                }}
+                                            >
+                                                <Text style={styles.sendBtnText}>Отправить код</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                </View>
+                            </Modal>
+
+                            <LoadingScreen visible={isLoading} />
+
                         </>
                     )}
                 </Formik>
@@ -363,6 +435,107 @@ const styles = StyleSheet.create({
         textDecorationStyle: 'solid',
         color: '#000',
     },
+
+    // Modal styles:
+    modalOverlay: {
+        flex: 1,
+        backgroundColor: 'rgba(0,0,0,0.2)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    modalContainer: {
+        width: 246,
+        height: 265,
+        backgroundColor: 'white',
+        borderRadius: 12,
+        padding: 16,
+        alignItems: 'center',
+        position: 'relative',
+        top: 85,
+    },
+    closeButton: {
+        position: 'absolute',
+        right: 12,
+        top: 12,
+    },
+    modalTitle: {
+        fontSize: 20,
+        fontWeight: '600',
+        lineHeight: 24.2,
+        marginBottom: 8,
+        marginTop: 16,
+    },
+    modalText: {
+        fontSize: 14,
+        textAlign: 'center',
+        marginBottom: 20,
+        paddingHorizontal: 10,
+        lineHeight: 19.36,
+        fontWeight: '400',
+        fontFamily: 'Inter',
+    },
+    modalButtonColumn: {
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 16,
+    },
+    modalButtonCheck: {
+        backgroundColor: '#f0ad4e',
+        borderRadius: 4,
+        alignItems: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        marginBottom: 0,
+        width: 118,
+        borderWidth: 1,
+        borderColor: '#00A9E3',
+        borderStyle: 'solid',
+    },
+    checkBtnText: {
+        fontFamily: 'Inter',
+        fontWeight: '600',
+        fontSize: 14,
+        color: "white",
+        lineHeight: 16.94,
+        width: 110.78,
+        height: 17,
+        textAlign: 'center',
+    },
+    modalButtonSend: {
+        borderRadius: 4,
+        alignItems: 'center',
+        paddingVertical: 8,
+        paddingHorizontal: 16,
+        width: 118,
+        borderWidth: 1,
+        borderColor: '#9D9D9D',
+        borderStyle: 'solid',
+    },
+    sendBtnText: {
+        fontFamily: 'Inter',
+        fontWeight: '600',
+        fontSize: 14,
+        color: "#FFB400",
+        lineHeight: 16.94,
+        width: 110.78,
+        height: 17,
+        textAlign: 'center',
+    },
+
+
+    loadingOverlay: {
+        position: 'absolute',
+        top: 0,
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: 'rgba(0, 0, 0, 0.3)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        zIndex: 1000,  // Make sure it overlays other content
+    },
+
 });
 
 export default LoginScreen;
