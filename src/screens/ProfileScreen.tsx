@@ -11,15 +11,17 @@ import {
 } from 'react-native';
 import LoadingOverlay from '../components/LoadingOverlay';
 import { Ionicons } from '@expo/vector-icons';
+import { doc, updateDoc, getDoc, deleteField } from 'firebase/firestore';
 import { useNavigation } from '@react-navigation/native';
-import { doc, getDoc } from 'firebase/firestore';
 import { Formik } from 'formik';
 import CustomAlert from '../components/CustomAlert';
 import { UserProfile } from '../services/userService';
 import { updateUserProfile } from '../services/userService';
+import PhotoOptionsModal from '../components/PhotoOptionsModal';
 import ProfilePictureComponent from '../components/ProfilePicture';
 import * as Yup from 'yup';
 import { auth, db } from '../services/firebaseConfig';
+import * as ImagePicker from 'expo-image-picker';
 
 // Validation schema for the profile form
 const ProfileSchema = Yup.object().shape({
@@ -37,6 +39,7 @@ const ProfileScreen: React.FC = () => {
     const [initialValues, setInitialValues] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [isAlertVisible, setIsAlertVisible] = useState(false);
+    const [isPhotoOptionsVisible, setIsPhotoOptionsVisible] = useState(false);
 
     // Fetch user data from Firestore
     const fetchUserData = async () => {
@@ -49,7 +52,6 @@ const ProfileScreen: React.FC = () => {
             const docRef = doc(db, 'users', currentUser.email.toLowerCase());
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
-                // Set values for our form
                 const data = docSnap.data() as UserProfile;
                 setInitialValues({
                     lastName: data.lastName || '',
@@ -84,10 +86,107 @@ const ProfileScreen: React.FC = () => {
         return <LoadingOverlay visible={true} />;
     }
 
+    const handleAddFromGallery = async () => {
+        // Request permission to access the media library
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            alert('Доступ к галерее запрещён!');
+            setIsPhotoOptionsVisible(false);
+            return;
+        }
+        // Launch image picker for images only, with square aspect ratio
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: "images",
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 1,
+        });
+
+        if (result.canceled) {
+            setIsPhotoOptionsVisible(false);
+            return;
+        }
+
+        const uri: string = result.assets[0].uri;
+        console.log('Selected image:', uri);
+        try {
+            const updatedProfile: UserProfile = {
+                ...initialValues!,
+                profilePicture: uri,
+            };
+            await updateUserProfile(updatedProfile);
+            await fetchUserData();
+        } catch (error) {
+            console.error('Error updating profile picture:', error);
+        }
+        setIsPhotoOptionsVisible(false);
+    };
+
+    const handleTakePhoto = async () => {
+        // Request permission to access the camera
+        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        if (status !== 'granted') {
+            alert('Доступ к камере запрещён!');
+            setIsPhotoOptionsVisible(false);
+            return;
+        }
+        // Launch the camera with square aspect ratio editing
+        const result = await ImagePicker.launchCameraAsync({
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 1,
+        });
+
+        if (result.canceled) {
+            setIsPhotoOptionsVisible(false);
+            return;
+        }
+
+        const uri: string = result.assets[0].uri;
+        console.log('Captured image:', uri);
+        try {
+            const updatedProfile: UserProfile = {
+                ...initialValues!,
+                profilePicture: uri,
+            };
+            await updateUserProfile(updatedProfile);
+            await fetchUserData();
+        } catch (error) {
+            console.error('Error updating profile picture:', error);
+        }
+        setIsPhotoOptionsVisible(false);
+    };
+
+
+
+    const handleRemovePhoto = async () => {
+        if (!currentUser?.email) return;
+        console.log('Remove photo');
+        try {
+            const docRef = doc(db, 'users', currentUser.email.toLowerCase());
+            await updateDoc(docRef, {
+                profilePicture: deleteField(),
+            });
+            await fetchUserData();
+        } catch (error) {
+            console.error('Error removing profile picture:', error);
+        }
+        setIsPhotoOptionsVisible(false);
+    };
+
+
     return (
         <SafeAreaView style={styles.safeArea}>
             {/* Pop up Alert */}
             <CustomAlert visible={isAlertVisible} onClose={() => setIsAlertVisible(false)} />
+            {/* Pop up Photo Options Modal */}
+            <PhotoOptionsModal
+                visible={isPhotoOptionsVisible}
+                onClose={() => setIsPhotoOptionsVisible(false)}
+                onAddFromGallery={handleAddFromGallery}
+                onTakePhoto={handleTakePhoto}
+                onRemovePhoto={handleRemovePhoto}
+            />
             {/* Header */}
             <View style={[styles.headerContainer, { paddingHorizontal: width * 0.05 }]}>
                 <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
@@ -100,7 +199,9 @@ const ProfileScreen: React.FC = () => {
             <ScrollView contentContainerStyle={[styles.scrollContent, { paddingHorizontal: width * 0.05 }]}>
                 {/* Profile picture, name, and email section */}
                 <View style={styles.avatarContainer}>
-                    <ProfilePictureComponent profilePicture={initialValues.profilePicture} />
+                    <TouchableOpacity onPress={() => setIsPhotoOptionsVisible(true)}>
+                        <ProfilePictureComponent profilePicture={initialValues.profilePicture} />
+                    </TouchableOpacity>
                     <Text style={styles.userName}>
                         {initialValues.lastName} {initialValues.firstName}
                     </Text>
