@@ -56,6 +56,7 @@ const MenuScreen: React.FC = () => {
                     <Ionicons name="chevron-back" size={24} color="#000" />
                 </TouchableOpacity>
                 <Text style={styles.headerTitle}>Профиль</Text>
+                <View style={styles.headerRightPlaceholder} />
             </View>
 
             {/* Profile container */}
@@ -63,7 +64,7 @@ const MenuScreen: React.FC = () => {
                 <ProfilePictureComponent profilePicture={userData.profilePicture} sizeMultiplier={0.25} />
                 <View style={styles.profileTextContainer}>
                     <Text style={styles.profileName}>
-                        {userData.middleName} {userData.firstName}
+                        {userData.lastName} {userData.firstName}
                     </Text>
                     <Text style={styles.profileEmail}>{userData.email}</Text>
                 </View>
@@ -130,8 +131,10 @@ const styles = StyleSheet.create({
         lineHeight: 30.24,
         fontWeight: '600',
         textAlign: 'center',
-
         color: '#000',
+    },
+    headerRightPlaceholder: {
+        width: 32,
     },
     profileContainer: {
         width: '90%',
@@ -166,7 +169,6 @@ const styles = StyleSheet.create({
     menuItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        justifyContent: 'center',
         backgroundColor: '#fff',
         borderRadius: 12,
         padding: 14,
