@@ -69,18 +69,27 @@ const ScheduleScreen: React.FC = () => {
             {/* Date Picker */}
             <View style={styles.datePickerContainer}>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                    {dateOptions.map((item, index) => (
-                        <TouchableOpacity
-                            key={index}
-                            style={[
-                                styles.dateButton,
-                                selectedDay === item && styles.dateButtonSelected,
-                            ]}
-                            onPress={() => setSelectedDay(item)}
-                        >
-                            <Text style={styles.dateButtonText}>{item}</Text>
-                        </TouchableOpacity>
-                    ))}
+                    {dateOptions.map((item, index) => {
+                        const [dayAbbrev, dateNum] = item.split(' ');
+                        const isSelected = selectedDay === item;
+                        return (
+                            <TouchableOpacity
+                                key={index}
+                                style={[
+                                    styles.dateButton,
+                                    selectedDay === item && styles.dateButtonSelected,
+                                ]}
+                                onPress={() => setSelectedDay(item)}
+                            >
+                                <Text style={[styles.dateDayText, isSelected && styles.dateDayTextSelected]}>
+                                    {dayAbbrev}
+                                </Text>
+                                <Text style={[styles.dateNumberText, isSelected && styles.dateNumberTextSelected]}>
+                                    {dateNum}
+                                </Text>
+                            </TouchableOpacity>
+                        );
+                    })}
                 </ScrollView>
             </View>
 
@@ -200,19 +209,33 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     dateButton: {
-        paddingVertical: 8,
-        paddingHorizontal: 12,
+        paddingVertical: 12,
+        paddingHorizontal: 14,
         backgroundColor: '#eee',
-        borderRadius: 20,
+        minHeight: 50,
+        borderRadius: 15,
         marginRight: 8,
+        alignItems: 'center',
+    },
+    dateDayText: {
+        fontSize: 20,
+        fontWeight: '600',
+        color: '#969696',
+    },
+    dateNumberText: {
+        fontSize: 20,
+        fontWeight: '600',
+        color: '#000',
     },
     dateButtonSelected: {
         backgroundColor: '#F4B2B2',
         borderRadius: 20,
     },
-    dateButtonText: {
-        fontSize: 16,
-        color: '#000',
+    dateDayTextSelected: {
+        color: '#fff',
+    },
+    dateNumberTextSelected: {
+        color: '#fff',
     },
     todayButton: {
         backgroundColor: '#E9F4EF',
@@ -244,7 +267,7 @@ const styles = StyleSheet.create({
         marginBottom: 12,
     },
     timeRow: {
-        marginBottom: 16,
+        marginBottom: 80,
         alignItems: 'flex-start',
     },
     startTime: {
@@ -275,12 +298,14 @@ const styles = StyleSheet.create({
     lessonRow: {
         flexDirection: 'row',
         marginBottom: 16,
+        alignItems: 'center',
+
     },
     timeColumn: {
         width: 80,
         justifyContent: 'center',
         alignItems: 'flex-end',
-        paddingRight: 20,
+        paddingRight: 10,
     },
     time: {
         fontSize: 20,
@@ -291,9 +316,9 @@ const styles = StyleSheet.create({
         flex: 1,
         borderRadius: 8,
         padding: 12,
-        marginBottom: 16,
+        marginBottom: 25,
         justifyContent: 'center',
-
+        alignItems: 'flex-start',
     },
     lessonName: {
         fontSize: 20,
