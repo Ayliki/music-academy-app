@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     SafeAreaView,
     View,
@@ -8,6 +8,21 @@ import {
     StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
+const generateDateOptions = (baseDate: Date): string[] => {
+    const options: string[] = [];
+    for (let i = 0; i < 20; i++) {
+        const d = new Date(baseDate);
+        d.setDate(baseDate.getDate() + i);
+        const weekday = d
+            .toLocaleDateString('ru-RU', { weekday: 'short' })
+            .replace('.', '')
+            .trim();
+        const day = d.getDate();
+        options.push(`${weekday} ${day}`);
+    }
+    return options;
+};
 
 const lessons = [
     {
@@ -37,10 +52,25 @@ const lessons = [
     },
 ];
 
-const dateOptions = ['Пн 27', 'Вт 28', 'Ср 29', 'Сб 30', 'Вс 31'];
-
 const ScheduleScreen: React.FC = () => {
-    const [selectedDay, setSelectedDay] = useState('Сб 30');
+    const today = new Date();
+    const todayNum = today.getDate();
+    const todayMonth = today.toLocaleDateString('ru-RU', { month: 'short' }).replace('.', '');
+    const todayWeekday = today.toLocaleDateString('ru-RU', { weekday: 'short' }).replace('.', '');
+
+    const defaultSelected = (() => {
+        const weekday = today
+            .toLocaleDateString('ru-RU', { weekday: 'short' })
+            .replace('.', '')
+            .trim();
+        const day = today.getDate();
+        return `${weekday} ${day}`;
+    })();
+
+    const [selectedDay, setSelectedDay] = useState(defaultSelected);
+    console.log(defaultSelected);
+    console.log(selectedDay);
+    const dateOptions = generateDateOptions(today);
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -52,15 +82,15 @@ const ScheduleScreen: React.FC = () => {
                 {/* Date Info */}
                 <View style={styles.dateInfoContainer}>
                     <View style={styles.dateTextContainer}>
-                        <Text style={styles.dateTextDay}>30</Text>
-                        <Text style={styles.dateTextMonth}>ноя</Text>
+                        <Text style={styles.dateTextDay}>{todayNum}</Text>
+                        <Text style={styles.dateTextMonth}>{todayMonth}</Text>
                     </View>
                     <View style={styles.dateTextContainer}>
-                        <Text style={styles.dayText}>Сб</Text>
-                        <Text style={styles.yearText}>2024 год</Text>
+                        <Text style={styles.dayText}>{todayWeekday}</Text>
+                        <Text style={styles.yearText}>2025 год</Text>
                         <Text style={styles.groupLabel}>Группа: Junior 2</Text>
                     </View>
-                    <TouchableOpacity style={styles.todayButton} onPress={() => setSelectedDay('Сб 30')}>
+                    <TouchableOpacity style={styles.todayButton} onPress={() => setSelectedDay(`${todayWeekday} ${todayNum}`)}>
                         <Text style={styles.todayButtonText}>Сегодня</Text>
                     </TouchableOpacity>
                 </View>
@@ -149,8 +179,9 @@ const styles = StyleSheet.create({
         elevation: 2,
     },
     backButton: {
-        marginRight: 22,
+        marginRight: 20,
         marginTop: -47,
+        marginLeft: -15,
     },
     headerTitle: {
         flex: 1,
