@@ -14,6 +14,7 @@ import { useUserData } from '../hooks/useUserData';
 import LoadingOverlay from '../components/LoadingOverlay';
 import ProfileSummary from '../components/ProfileSummary';
 import MenuItem from '../components/MenuItem';
+import HeaderMenu from '../components/HeaderMenu';
 
 interface MenuItemData {
     label: string;
@@ -45,14 +46,7 @@ const MenuScreen: React.FC = () => {
     return (
         <SafeAreaView style={styles.safeArea}>
             {/* Header*/}
-            <View style={styles.header}>
-                <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-                    <Ionicons name="chevron-back" size={24} color="#000" />
-                </TouchableOpacity>
-                <Text style={styles.headerTitle}>Профиль</Text>
-                <View style={styles.headerRightPlaceholder} />
-            </View>
-
+            <HeaderMenu title={'Профиль'} onBack={() => navigation.goBack()} />
             {/* Profile summary */}
             <ProfileSummary profile={userData} onPress={() => navigation.navigate('Profile')} />
 

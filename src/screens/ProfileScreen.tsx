@@ -49,7 +49,7 @@ const ProfileScreen: React.FC = () => {
                 onRemovePhoto={handleRemovePhoto}
             />
             {/* Header */}
-            <HeaderMenu onBack={() => navigation.goBack()} />
+            <HeaderMenu title={'Профиль'} onBack={() => navigation.goBack()} />
 
             <ScrollView contentContainerStyle={[styles.scrollContent, { paddingHorizontal: width * 0.05 }]}>
                 <AvatarSection

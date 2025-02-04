@@ -7,6 +7,7 @@ import SignUpScreen from '../screens/SignUpScreen';
 import { RootStackParamList } from './types';
 import ProfileScreen from '../screens/ProfileScreen';
 import MenuScreen from '../screens/MenuScreen';
+import ApplicationScreen from '../screens/ApplicationScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -19,6 +20,7 @@ const AppNavigator = () => {
                 <Stack.Screen name="Home" component={HomeScreen} />
                 <Stack.Screen name='Profile' component={ProfileScreen} />
                 <Stack.Screen name='Menu' component={MenuScreen} />
+                <Stack.Screen name='Application' component={ApplicationScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

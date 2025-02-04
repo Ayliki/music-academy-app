@@ -3,16 +3,17 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface HeaderProps {
+    title: string;
     onBack: () => void;
 }
 
-const HeaderMenu: React.FC<HeaderProps> = ({ onBack }) => {
+const HeaderMenu: React.FC<HeaderProps> = ({ title, onBack }) => {
     return (
         <View style={styles.headerContainer}>
             <TouchableOpacity onPress={onBack} style={styles.backButton}>
                 <Ionicons name="chevron-back" size={30} color="black" />
             </TouchableOpacity>
-            <Text style={styles.headerTitle}>Профиль</Text>
+            <Text style={styles.headerTitle}>{title}</Text>
             <View style={styles.placeholder} />
         </View>
     );
@@ -39,6 +40,6 @@ const styles = StyleSheet.create({
         color: '#000',
     },
     placeholder: {
-        width: 30,
+        width: 35,
     },
 });
