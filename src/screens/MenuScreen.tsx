@@ -9,22 +9,22 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import ProfilePictureComponent from '../components/ProfilePicture';
 import { NavigationProps } from '../navigation/types';
 import { useUserData } from '../hooks/useUserData';
 import LoadingOverlay from '../components/LoadingOverlay';
+import ProfileSummary from '../components/ProfileSummary';
+import MenuItem from '../components/MenuItem';
 
-interface MenuItem {
+interface MenuItemData {
     label: string;
     screen?: string;
-    action?: () => void;
+    onPress?: () => void;
     icon: keyof typeof Ionicons.glyphMap;
 }
 
 const MenuScreen: React.FC = () => {
     const { width } = useWindowDimensions();
     const navigation = useNavigation<NavigationProps>();
-
     const { userData, isLoading, error } = useUserData();
 
     if (isLoading || !userData) {
@@ -33,19 +33,13 @@ const MenuScreen: React.FC = () => {
 
     const fullName = `${userData.lastName} ${userData.firstName}`;
 
-    const menuItems: MenuItem[] = [
+    const menuItems: MenuItemData[] = [
         { label: 'Профиль', screen: 'Profile', icon: 'person' },
         { label: 'События', screen: 'Events', icon: 'calendar' },
         { label: 'Расписание', screen: 'Schedule', icon: 'time' },
         { label: 'Подать заявку на И/З', screen: 'Application', icon: 'document-text' },
         { label: 'Педагоги', screen: 'Teachers', icon: 'people' },
-        {
-            label: 'Выйти',
-            action: () => {
-                navigation.navigate('Login');
-            },
-            icon: 'log-out',
-        },
+        { label: 'Выйти', onPress: () => navigation.navigate('Login'), icon: 'log-out' },
     ];
 
     return (
@@ -59,48 +53,21 @@ const MenuScreen: React.FC = () => {
                 <View style={styles.headerRightPlaceholder} />
             </View>
 
-            {/* Profile container */}
-            <View style={styles.profileContainer}>
-                <ProfilePictureComponent profilePicture={userData.profilePicture} sizeMultiplier={0.25} />
-                <View style={styles.profileTextContainer}>
-                    <Text style={styles.profileName}>
-                        {userData.lastName} {userData.firstName}
-                    </Text>
-                    <Text style={styles.profileEmail}>{userData.email}</Text>
-                </View>
-            </View>
+            {/* Profile summary */}
+            <ProfileSummary profile={userData} onPress={() => navigation.navigate('Profile')} />
 
             {/* Menu Items */}
-            <View style={styles.menuItemsContainer}>
-                <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Profile')}>
-                    <Ionicons name="person-outline" size={24} color="#000" style={styles.menuIcon} />
-                    <Text style={styles.menuLabel}>Профиль</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Events')}>
-                    <Ionicons name="document-text-outline" size={24} color="#000" style={styles.menuIcon} />
-                    <Text style={styles.menuLabel}>События</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Schedule')}>
-                    <Ionicons name="calendar-outline" size={24} color="#000" style={styles.menuIcon} />
-                    <Text style={styles.menuLabel}>Расписание</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Application')}>
-                    <Ionicons name="mic-outline" size={24} color="#000" style={styles.menuIcon} />
-                    <Text style={styles.menuLabel}>Подать заявку на И/З</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.menuItem} onPress={() => navigation.navigate('Teachers')}>
-                    <Ionicons name="school-outline" size={24} color="#000" style={styles.menuIcon} />
-                    <Text style={styles.menuLabel}>Педагоги</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity style={styles.menuItem} onPress={() => console.log('Logout')}>
-                    <Ionicons name="log-out-outline" size={24} color="#000" style={styles.menuIcon} />
-                    <Text style={styles.menuLabel}>Выйти</Text>
-                </TouchableOpacity>
+            <View style={[styles.menuItemsContainer, { paddingHorizontal: width * 0.05 }]}>
+                {menuItems.map((item, index) => (
+                    <MenuItem
+                        key={index}
+                        label={item.label}
+                        icon={item.icon}
+                        onPress={() =>
+                            item.onPress ? item.onPress() : navigation.navigate(item.screen as any)
+                        }
+                    />
+                ))}
             </View>
         </SafeAreaView>
     );
@@ -112,6 +79,11 @@ const styles = StyleSheet.create({
     safeArea: {
         flex: 1,
         backgroundColor: '#fff',
+    },
+    menuItemsContainer: {
+        paddingBottom: 32,
+        width: '100%',
+        alignSelf: 'center',
     },
     header: {
         flexDirection: 'row',
@@ -135,54 +107,5 @@ const styles = StyleSheet.create({
     },
     headerRightPlaceholder: {
         width: 32,
-    },
-    profileContainer: {
-        width: '90%',
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#D6DCF1',
-        borderRadius: 15,
-        padding: 16,
-        marginHorizontal: '5%',
-        marginVertical: 12,
-    },
-    profileTextContainer: {
-        marginLeft: 16,
-        flex: 1,
-    },
-    profileName: {
-        fontSize: 20,
-        fontWeight: '600',
-        lineHeight: 25.2,
-        color: '#000',
-    },
-    profileEmail: {
-        fontSize: 15,
-        color: '#555',
-        textDecorationLine: 'underline',
-        marginTop: 2,
-    },
-    menuItemsContainer: {
-        width: '90%',
-        alignSelf: 'center',
-    },
-    menuItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: '#fff',
-        borderRadius: 12,
-        padding: 14,
-        marginBottom: 10,
-        elevation: 1,
-        borderWidth: 3,
-        borderColor: '#EEEEEE',
-    },
-    menuIcon: {
-        marginRight: 14,
-    },
-    menuLabel: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: '#565454',
     },
 });
