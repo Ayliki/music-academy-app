@@ -1,8 +1,13 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { auth, db } from '../services/firebaseConfig';
+import { onAuthStateChanged, User } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
-type Role = 'student' | 'admin' | 'teacher' | null;
+type Role = 'default' | 'teacher' | 'administrator' | null;
 
 interface AuthContextType {
+    user: User | null;
+    loading: boolean;
     role: Role;
     setRole: (role: Role) => void;
 }
@@ -14,10 +19,40 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+    const [user, setUser] = useState<User | null>(null);
+    const [loading, setLoading] = useState(true);
     const [role, setRole] = useState<Role>(null);
 
+    useEffect(() => {
+        const unsubscribe = onAuthStateChanged(auth, async (authenticatedUser) => {
+            setUser(authenticatedUser);
+            setLoading(false);
+
+            if (authenticatedUser) {
+                try {
+                    const userDocRef = doc(db, 'users', authenticatedUser.email?.toLowerCase() || '');
+                    const docSnap = await getDoc(userDocRef);
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        setRole(data.role ?? 'default');
+                    } else {
+                        setRole('default');
+                        console.log('No user document found. Default role set.');
+                    }
+                } catch (error) {
+                    console.error('Error fetching user role:', error);
+                    setRole('default');
+                }
+            } else {
+                setRole(null);
+            }
+        });
+
+        return () => unsubscribe();
+    }, []);
+
     return (
-        <AuthContext.Provider value={{ role, setRole }}>
+        <AuthContext.Provider value={{ user, loading, role, setRole }}>
             {children}
         </AuthContext.Provider>
     );

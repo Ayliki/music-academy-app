@@ -1,11 +1,11 @@
-// screens/LoginScreen.tsx
 import React from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
 import Header from '../components/Header';
 import LoginForm from '../components/LoginForm';
 import CodeVerificationForm from '../components/CodeVerificationForm';
 import { useAuth } from '../hooks/useAuth';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationProps } from '../navigation/types';
 
 const LoginScreen: React.FC = () => {
     const {
@@ -14,9 +14,11 @@ const LoginScreen: React.FC = () => {
         codeInput,
         setCodeInput,
         sendLoginCode,
-        verifyCode,
+        login,
         resetAuth,
     } = useAuth();
+
+    const navigation = useNavigation<NavigationProps>();
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -26,7 +28,7 @@ const LoginScreen: React.FC = () => {
                     code={codeInput}
                     onChangeCode={setCodeInput}
                     onGoBack={resetAuth}
-                    onVerify={verifyCode}
+                    onVerify={() => login(() => navigation.navigate('Menu'))}
                 />
             ) : (
                 <LoginForm onSendCode={sendLoginCode} isLoading={isLoading} />

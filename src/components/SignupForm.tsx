@@ -5,6 +5,7 @@ import RNPickerSelect from 'react-native-picker-select';
 import * as Yup from 'yup';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationProps } from '../navigation/types';
+import SingleSelectDropdown from './SingleSelectDropdown';
 
 export interface SignupFormValues {
     lastName: string;
@@ -111,47 +112,29 @@ const SignupForm: React.FC<SignupFormProps> = ({ initialValues, onSubmit }) => {
                             {touched.email && errors.email && <Text style={styles.error}>{errors.email}</Text>}
 
                             {/* Picker */}
-                            <View style={styles.pickerContainer}>
-                                <RNPickerSelect
-                                    placeholder={{
-                                        label: isTeacher ? 'Выберите предмет' : 'Выберите группу',
-                                        value: '',
-                                        color: '#999',
-                                    }}
-                                    onValueChange={(value) => setFieldValue('selection', value)}
-                                    value={values.selection}
-                                    items={
-                                        isTeacher
-                                            ? [
-                                                { label: 'Сольфеджио', value: 'solfeggio' },
-                                                { label: 'Актерское мастерство', value: 'acting' },
-                                                { label: 'Вокал', value: 'vocal' },
-                                            ]
-                                            : [
-                                                { label: 'Teens 1', value: 'Teens1' },
-                                                { label: 'Teens 2', value: 'Teens2' },
-                                                { label: 'Kids 1', value: 'Kids1' },
-                                                { label: 'Kids 2', value: 'Kids2' },
-                                                { label: 'Junior 1', value: 'Junior1' },
-                                                { label: 'Junior 2', value: 'Junior2' },
-                                                { label: 'Junior 3', value: 'Junior3' },
-                                            ]
-                                    }
-                                    style={{
-                                        inputIOS: {
-                                            color: 'black',
-                                            fontSize: 16,
-                                            paddingVertical: 12,
-                                            paddingHorizontal: 12,
-                                            width: '100%',
-                                        },
-                                        placeholder: { color: '#999' },
-                                    }}
-                                    textInputProps={{ pointerEvents: 'none' }}
-                                    fixAndroidTouchableBug={true}
-                                    useNativeAndroidPickerStyle={false}
-                                />
-                            </View>
+                            <SingleSelectDropdown
+                                label={isTeacher ? 'Выберите предмет' : 'Выберите группу'}
+                                options={
+                                    isTeacher
+                                        ? [
+                                            'Сольфеджио',
+                                            'Актерское мастерство',
+                                            'Вокал',
+                                        ]
+                                        : [
+                                            'Teens 1',
+                                            'Teens 2',
+                                            'Kids 1',
+                                            'Kids 2',
+                                            'Junior 1',
+                                            'Junior 2',
+                                            'Junior 3',
+                                        ]
+                                }
+                                selectedOption={values.selection}
+                                onSelectionChange={(value) => setFieldValue('selection', value)}
+                                placeholder={isTeacher ? 'Выберите предмет' : 'Выберите группу'}
+                            />
                             {touched.selection && errors.selection && <Text style={styles.error}>{errors.selection}</Text>}
 
                             {/* Submit button */}
