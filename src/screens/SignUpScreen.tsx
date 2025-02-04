@@ -90,7 +90,6 @@ const SignUpScreen: React.FC = () => {
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-                {/* Header now scrolls with the page */}
                 <Header />
 
                 {isCodeStep ? (
