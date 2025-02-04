@@ -11,9 +11,12 @@ import {
 import { useNavigation } from '@react-navigation/native';
 import HeaderMenu from '../components/HeaderMenu';
 import MultiSelectDropdown from '../components/MultiSelectDropdown';
+import CustomAlert from '../components/CustomAlert';
 
 const ApplicationScreen: React.FC = () => {
     const navigation = useNavigation();
+
+    const [alertVisible, setAlertVisible] = useState(false);
 
     // Dropdown state for "День недели"
     const [selectedDays, setSelectedDays] = useState<string[]>([]);
@@ -32,8 +35,11 @@ const ApplicationScreen: React.FC = () => {
     const teachers = ['Юля', 'Камила', 'Карина', 'Мария', 'Не важно'];
 
     const handleSubmit = () => {
-        // Implement your submit logic here
-        console.log('Application submitted:', { selectedDays, startTime, endTime, selectedSubjects, selectedTeachers });
+        try {
+            setAlertVisible(true);
+        } catch (error) {
+            console.error('Error saving profile:', error);
+        }
     };
 
     return (
@@ -87,6 +93,8 @@ const ApplicationScreen: React.FC = () => {
                     <Text style={styles.submitButtonText}>Отправить заявку</Text>
                 </TouchableOpacity>
             </ScrollView>
+
+            <CustomAlert visible={alertVisible} onClose={() => setAlertVisible(false)} />
         </SafeAreaView>
     );
 };
