@@ -73,7 +73,7 @@ const SignUpScreen: React.FC = () => {
             if (response.ok) {
                 const data = await response.json();
                 console.log('Code verified successfully', data);
-                navigation.navigate('Profile');
+                navigation.navigate('Menu');
             } else {
                 const errorData = await response.json();
                 console.error('Verification error:', errorData.error);

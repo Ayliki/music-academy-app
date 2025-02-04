@@ -3,11 +3,12 @@ import { Image, View, StyleSheet, useWindowDimensions } from 'react-native';
 
 interface ProfilePictureProps {
     profilePicture?: string;
+    sizeMultiplier?: number;
 }
 
-const ProfilePictureComponent: React.FC<ProfilePictureProps> = ({ profilePicture }) => {
+const ProfilePictureComponent: React.FC<ProfilePictureProps> = ({ profilePicture, sizeMultiplier = 0.485, }) => {
     const { width } = useWindowDimensions();
-    const avatarSize = width * 0.485;
+    const avatarSize = width * sizeMultiplier;
 
     return (
         <View

@@ -5,6 +5,11 @@ export type RootStackParamList = {
     SignUp: undefined;
     Home: undefined;
     Profile: undefined;
+    Menu: undefined;
+    Teachers: undefined;
+    Events: undefined;
+    Application: undefined;
+    Schedule: undefined;
     EnterCode: { email: string };
 };
 

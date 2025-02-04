@@ -28,7 +28,7 @@ const LoginScreen: React.FC = () => {
                     code={codeInput}
                     onChangeCode={setCodeInput}
                     onGoBack={resetAuth}
-                    onVerify={() => login(() => navigation.navigate('Profile'))}
+                    onVerify={() => login(() => navigation.navigate('Menu'))}
                 />
             ) : (
                 <LoginForm onSendCode={sendLoginCode} isLoading={isLoading} />

@@ -22,6 +22,7 @@ import ProfilePictureComponent from '../components/ProfilePicture';
 import * as Yup from 'yup';
 import { auth, db } from '../services/firebaseConfig';
 import * as ImagePicker from 'expo-image-picker';
+import { useUserData } from '../hooks/useUserData';
 
 // Validation schema for the profile form
 const ProfileSchema = Yup.object().shape({
@@ -33,56 +34,13 @@ const ProfileSchema = Yup.object().shape({
 });
 
 const ProfileScreen: React.FC = () => {
-    const { width, height } = useWindowDimensions();
+    const { width } = useWindowDimensions();
     const navigation = useNavigation();
+    const { userData: initialValues, isLoading, error, refetch } = useUserData();
+    const [isAlertVisible, setIsAlertVisible] = React.useState(false);
+    const [isPhotoOptionsVisible, setIsPhotoOptionsVisible] = React.useState(false);
+
     const currentUser = auth.currentUser;
-    const [initialValues, setInitialValues] = useState<UserProfile | null>(null);
-    const [isLoading, setIsLoading] = useState(true);
-    const [isAlertVisible, setIsAlertVisible] = useState(false);
-    const [isPhotoOptionsVisible, setIsPhotoOptionsVisible] = useState(false);
-
-    // Fetch user data from Firestore
-    const fetchUserData = async () => {
-        if (!currentUser?.email) {
-            console.log('No current user or email available');
-            setIsLoading(false);
-            return;
-        }
-        try {
-            const docRef = doc(db, 'users', currentUser.email.toLowerCase());
-            const docSnap = await getDoc(docRef);
-            if (docSnap.exists()) {
-                const data = docSnap.data() as UserProfile;
-                setInitialValues({
-                    lastName: data.lastName || '',
-                    firstName: data.firstName || '',
-                    middleName: data.middleName || '',
-                    phone: data.phone || '',
-                    email: currentUser.email,
-                    profilePicture: data.profilePicture,
-                    role: data.role,
-                });
-            } else {
-                setInitialValues({
-                    lastName: '',
-                    firstName: '',
-                    middleName: '',
-                    phone: '',
-                    email: currentUser.email || '',
-                    profilePicture: undefined,
-                    role: 'default',
-                });
-            }
-        } catch (error) {
-            console.log('Error fetching user data:', error);
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchUserData();
-    }, []);
 
     if (isLoading || !initialValues) {
         return <LoadingOverlay visible={true} />;
@@ -119,7 +77,7 @@ const ProfileScreen: React.FC = () => {
                 profilePicture: uri,
             };
             await updateUserProfile(updatedProfile);
-            await fetchUserData();
+            await refetch();
         } catch (error) {
             console.error('Error updating profile picture:', error);
         }
@@ -154,7 +112,7 @@ const ProfileScreen: React.FC = () => {
                 profilePicture: uri,
             };
             await updateUserProfile(updatedProfile);
-            await fetchUserData();
+            await refetch();
         } catch (error) {
             console.error('Error updating profile picture:', error);
         }
@@ -171,7 +129,7 @@ const ProfileScreen: React.FC = () => {
             await updateDoc(docRef, {
                 profilePicture: deleteField(),
             });
-            await fetchUserData();
+            await refetch();
         } catch (error) {
             console.error('Error removing profile picture:', error);
         }
