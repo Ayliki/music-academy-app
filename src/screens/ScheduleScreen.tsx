@@ -8,10 +8,62 @@ import {
     StyleSheet,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { collection, onSnapshot } from 'firebase/firestore';
+import { doc, updateDoc, setDoc } from 'firebase/firestore';
+import { db } from '../services/firebaseConfig';
+
+const useLessons = (): { lessons: any[]; setLessons: React.Dispatch<React.SetStateAction<any[]>> } => {
+    const [lessons, setLessons] = useState<any[]>([]);
+
+    useEffect(() => {
+        const lessonsCol = collection(db, 'lessons');
+        const unsubscribe = onSnapshot(lessonsCol, (snapshot) => {
+            const lessonsData = snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data(),
+            }));
+            setLessons(lessonsData);
+        });
+        return () => unsubscribe();
+    }, []);
+
+    return { lessons, setLessons };
+};
+
+const lessons: any[] = [
+    {
+        id: '1',
+        timeStart: '09:00',
+        timeEnd: '09:45',
+        lesson: 'Сольфеджио',
+        room: 'Каб: желтый',
+        instructor: 'Преп: Роза Лукмановна',
+        bgColor: '#FFC600',
+    },
+    {
+        id: '2',
+        timeStart: '10:00',
+        timeEnd: '10:45',
+        lesson: 'Актерское мастерство',
+        room: 'Каб: оранжевый',
+        instructor: 'Преп: Роза Лукмановна',
+        bgColor: '#F9B658',
+    },
+    {
+        id: '3',
+        timeStart: '11:00',
+        timeEnd: '11:45',
+        lesson: 'Вокал',
+        room: 'Каб: розовый',
+        instructor: 'Преп: Роза Лукмановна',
+        bgColor: '#F4B2B2',
+        actions: true,
+    },
+];
 
 const generateDateOptions = (baseDate: Date): string[] => {
     const options: string[] = [];
-    for (let i = 0; i < 20; i++) {
+    for (let i = -2; i < 20; i++) {
         const d = new Date(baseDate);
         d.setDate(baseDate.getDate() + i);
         const weekday = d
@@ -23,34 +75,6 @@ const generateDateOptions = (baseDate: Date): string[] => {
     }
     return options;
 };
-
-const lessons = [
-    {
-        timeStart: '09:00',
-        timeEnd: '09:45',
-        lesson: 'Сольфеджио',
-        room: 'Каб: желтый',
-        instructor: 'Преп: Роза Лукмановна',
-        bgColor: '#FFC600',
-    },
-    {
-        timeStart: '10:00',
-        timeEnd: '10:45',
-        lesson: 'Актерское мастерство',
-        room: 'Каб: оранжевый',
-        instructor: 'Преп: Роза Лукмановна',
-        bgColor: '#F9B658',
-    },
-    {
-        timeStart: '11:00',
-        timeEnd: '11:45',
-        lesson: 'Вокал',
-        room: 'Каб: розовый',
-        instructor: 'Преп: Роза Лукмановна',
-        bgColor: '#F4B2B2',
-        actions: true,
-    },
-];
 
 const ScheduleScreen: React.FC = () => {
     const today = new Date();
@@ -71,6 +95,36 @@ const ScheduleScreen: React.FC = () => {
     console.log(defaultSelected);
     console.log(selectedDay);
     const dateOptions = generateDateOptions(today);
+
+    const handleConfirm = async (lesson: any) => {
+        try {
+            const lessonRef = doc(db, 'lessons', lesson.id);
+            await setDoc(lessonRef, { confirmed: true }, { merge: true });
+            // Update local state immediately:
+            setLessons((prevLessons: any[]) =>
+                prevLessons.map(l => (l.id === lesson.id ? { ...l, confirmed: true } : l))
+            );
+            console.log('Lesson confirmed:', lesson.lesson);
+        } catch (error) {
+            console.error('Error confirming lesson:', error);
+        }
+    };
+
+    const handleCancel = async (lesson: any) => {
+        try {
+            const lessonRef = doc(db, 'lessons', lesson.id);
+            await setDoc(lessonRef, { confirmed: false }, { merge: true });
+            // Update local state immediately:
+            setLessons((prevLessons: any[]) =>
+                prevLessons.map(l => (l.id === lesson.id ? { ...l, confirmed: false } : l))
+            );
+            console.log('Lesson cancelled:', lesson.lesson);
+        } catch (error) {
+            console.error('Error cancelling lesson:', error);
+        }
+    };
+
+    const { lessons, setLessons } = useLessons();
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -142,16 +196,31 @@ const ScheduleScreen: React.FC = () => {
                                 <Text style={styles.lessonName}>{lesson.lesson}</Text>
                                 <Text style={styles.roomText}>{lesson.room}</Text>
                                 <Text style={styles.instructorText}>{lesson.instructor}</Text>
-                                {lesson.actions && (
+                                {lesson.confirmed === undefined && lesson.actions && (
                                     <View style={styles.actionsContainer}>
-                                        <TouchableOpacity style={styles.confirmButton}>
+                                        <TouchableOpacity
+                                            style={styles.confirmButton}
+                                            onPress={() => handleConfirm(lesson)}
+                                        >
                                             <Text style={styles.actionButtonText}>Подтвердить</Text>
                                         </TouchableOpacity>
-                                        <TouchableOpacity style={styles.cancelButton}>
+                                        <TouchableOpacity
+                                            style={styles.cancelButton}
+                                            onPress={() => handleCancel(lesson)}
+                                        >
                                             <Text style={styles.actionButtonText}>Отменить</Text>
                                         </TouchableOpacity>
                                     </View>
                                 )}
+
+                                {lesson.confirmed === true && (
+                                    <Text style={styles.confirmedText}>Подтверждено</Text>
+                                )}
+
+                                {lesson.confirmed === false && (
+                                    <Text style={styles.canceledText}>Отменено</Text>
+                                )}
+
                             </View>
                         ))}
                     </View>
@@ -399,6 +468,18 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: '600',
         color: '#000000',
+    },
+    confirmedText: {
+        fontSize: 16,
+        color: '#fff',
+        fontWeight: 'bold',
+        marginTop: 8,
+    },
+    canceledText: {
+        fontSize: 16,
+        color: '#fff',
+        fontWeight: 'bold',
+        marginTop: 8,
     },
 });
 
