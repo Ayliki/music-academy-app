@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { collection, onSnapshot } from 'firebase/firestore';
-import { doc, updateDoc, setDoc } from 'firebase/firestore';
+import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
 
 const useLessons = (): { lessons: any[]; setLessons: React.Dispatch<React.SetStateAction<any[]>> } => {
@@ -30,48 +30,21 @@ const useLessons = (): { lessons: any[]; setLessons: React.Dispatch<React.SetSta
     return { lessons, setLessons };
 };
 
-const lessons: any[] = [
-    {
-        id: '1',
-        timeStart: '09:00',
-        timeEnd: '09:45',
-        lesson: 'Сольфеджио',
-        room: 'Каб: желтый',
-        instructor: 'Преп: Роза Лукмановна',
-        bgColor: '#FFC600',
-    },
-    {
-        id: '2',
-        timeStart: '10:00',
-        timeEnd: '10:45',
-        lesson: 'Актерское мастерство',
-        room: 'Каб: оранжевый',
-        instructor: 'Преп: Роза Лукмановна',
-        bgColor: '#F9B658',
-    },
-    {
-        id: '3',
-        timeStart: '11:00',
-        timeEnd: '11:45',
-        lesson: 'Вокал',
-        room: 'Каб: розовый',
-        instructor: 'Преп: Роза Лукмановна',
-        bgColor: '#F4B2B2',
-        actions: true,
-    },
-];
-
 const generateDateOptions = (baseDate: Date): string[] => {
     const options: string[] = [];
-    for (let i = -2; i < 20; i++) {
+    for (let i = 0; i < 20; i++) {
         const d = new Date(baseDate);
         d.setDate(baseDate.getDate() + i);
         const weekday = d
             .toLocaleDateString('ru-RU', { weekday: 'short' })
-            .replace('.', '')
+            .replace(/[.,]/g, '')
             .trim();
         const day = d.getDate();
-        options.push(`${weekday} ${day}`);
+        const month = d
+            .toLocaleDateString('ru-RU', { month: 'short' })
+            .replace(/[.,]/g, '')
+            .trim();
+        options.push(`${weekday} ${day} ${month}`);
     }
     return options;
 };
@@ -82,25 +55,25 @@ const ScheduleScreen: React.FC = () => {
     const todayMonth = today.toLocaleDateString('ru-RU', { month: 'short' }).replace('.', '');
     const todayWeekday = today.toLocaleDateString('ru-RU', { weekday: 'short' }).replace('.', '');
 
-    const defaultSelected = (() => {
-        const weekday = today
-            .toLocaleDateString('ru-RU', { weekday: 'short' })
-            .replace('.', '')
-            .trim();
-        const day = today.getDate();
-        return `${weekday} ${day}`;
-    })();
-
+    const defaultSelected = `${todayWeekday} ${todayNum}`;
+    console.log("Default selected:", defaultSelected);
     const [selectedDay, setSelectedDay] = useState(defaultSelected);
-    console.log(defaultSelected);
-    console.log(selectedDay);
+
     const dateOptions = generateDateOptions(today);
+
+    const { lessons, setLessons } = useLessons();
+
+    const normalizedSelected = selectedDay.replace(/,/g, '').trim().toLowerCase();
+    const filteredLessons = lessons.filter((lesson) =>
+        lesson.dayLabel.replace(/,/g, '').trim().toLowerCase() === normalizedSelected
+    );
+
+
 
     const handleConfirm = async (lesson: any) => {
         try {
             const lessonRef = doc(db, 'lessons', lesson.id);
             await setDoc(lessonRef, { confirmed: true }, { merge: true });
-            // Update local state immediately:
             setLessons((prevLessons: any[]) =>
                 prevLessons.map(l => (l.id === lesson.id ? { ...l, confirmed: true } : l))
             );
@@ -124,7 +97,7 @@ const ScheduleScreen: React.FC = () => {
         }
     };
 
-    const { lessons, setLessons } = useLessons();
+    console.log("Filtered lessons:", filteredLessons);
 
     return (
         <SafeAreaView style={styles.safeArea}>
@@ -182,7 +155,7 @@ const ScheduleScreen: React.FC = () => {
                 <View style={styles.scheduleTable}>
                     <View style={styles.leftColumn}>
                         <Text style={styles.columnHeader}>Время</Text>
-                        {lessons.map((lesson, index) => (
+                        {filteredLessons.map((lesson, index) => (
                             <View key={index} style={styles.timeRow}>
                                 <Text style={styles.startTime}>{lesson.timeStart}</Text>
                                 <Text style={styles.endTime}>{lesson.timeEnd}</Text>
@@ -191,7 +164,7 @@ const ScheduleScreen: React.FC = () => {
                     </View>
                     <View style={styles.rightColumn}>
                         <Text style={styles.columnHeader}>Занятие</Text>
-                        {lessons.map((lesson, index) => (
+                        {filteredLessons.map((lesson, index) => (
                             <View key={index} style={[styles.lessonCard, { backgroundColor: lesson.bgColor }]}>
                                 <Text style={styles.lessonName}>{lesson.lesson}</Text>
                                 <Text style={styles.roomText}>{lesson.room}</Text>

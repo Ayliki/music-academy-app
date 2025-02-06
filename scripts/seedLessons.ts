@@ -1,4 +1,4 @@
-import { collection, doc, setDoc } from "firebase/firestore";
+import { collection, doc, writeBatch } from "firebase/firestore";
 import { db } from "../src/services/firebaseConfig";
 
 const lessonTemplates: { [key: string]: any[] } = {
@@ -28,25 +28,34 @@ const seedLessons = async () => {
     try {
         console.log("Seeding lessons for the next month...");
         const today = new Date();
+        const batch = writeBatch(db);
 
         for (let i = 0; i < 30; i++) {
             const lessonDate = new Date(today);
             lessonDate.setDate(today.getDate() + i);
+
             const formattedDate = lessonDate.toISOString().split("T")[0];
 
-            const weekday = lessonDate.toLocaleDateString("ru-RU", { weekday: "long" }).toLowerCase();
-            const lessonsForDay = lessonTemplates[weekday];
+            const dayLabel = lessonDate
+                .toLocaleDateString("ru-RU", { weekday: "short", day: "numeric", month: "short" })
+                .replace(/[.,]/g, '')
+                .trim();
 
+            const weekdayLong = lessonDate
+                .toLocaleDateString("ru-RU", { weekday: "long" })
+                .toLowerCase();
+
+            const lessonsForDay = lessonTemplates[weekdayLong];
             if (!lessonsForDay) continue;
 
             for (const lesson of lessonsForDay) {
                 const lessonId = `${formattedDate}-${lesson.timeStart.replace(":", "")}`;
                 const lessonRef = doc(collection(db, "lessons"), lessonId);
-                await setDoc(lessonRef, { ...lesson, date: formattedDate });
-
-                console.log(`Created lesson for ${weekday} on ${formattedDate}: ${lesson.lesson} at ${lesson.timeStart}`);
+                batch.set(lessonRef, { ...lesson, date: formattedDate, dayLabel });
+                console.log(`Prepared lesson for ${weekdayLong} on ${formattedDate}: ${lesson.lesson} at ${lesson.timeStart}`);
             }
         }
+        await batch.commit();
         console.log("Lesson seeding completed!");
     } catch (error) {
         console.error("Error seeding lessons:", error);
