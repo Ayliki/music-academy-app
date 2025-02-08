@@ -6,7 +6,7 @@ import {
     useWindowDimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NavigationProps } from '../navigation/types';
 import { useUserData } from '../hooks/useUserData';
 import LoadingOverlay from '../components/LoadingOverlay';
@@ -24,7 +24,14 @@ interface MenuItemData {
 const MenuScreen: React.FC = () => {
     const { width } = useWindowDimensions();
     const navigation = useNavigation<NavigationProps>();
-    const { userData, isLoading, error } = useUserData();
+    const { userData, isLoading, error, refetch } = useUserData();
+
+    useFocusEffect(
+        React.useCallback(() => {
+            // Refetch user data whenever MenuScreen is focused
+            refetch();
+        }, [refetch])
+    );
 
     if (isLoading || !userData) {
         return <LoadingOverlay visible={true} />;
