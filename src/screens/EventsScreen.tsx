@@ -44,22 +44,27 @@ const EventsScreen: React.FC = () => {
                 {events.map(event => (
                     <View key={event.id} style={styles.card}>
                         {event.image ? (
-                            <Image
-                                source={eventImages[event.image]}
-                                style={styles.eventImage}
-                            />
+                            <View style={styles.imageContainer}>
+                                <Image
+                                    source={eventImages[event.image]}
+                                    style={styles.eventImage}
+                                />
+                            </View>
                         ) : null}
                         <View style={[styles.cardContent, !event.image && styles.cardContentNoImage]}>
-                            <Text style={styles.eventTitle}>{event.title}</Text>
-                            <Text style={styles.eventDate}>
-                                {formatEventDate(event.date)}
-                            </Text>
+                            <View style={styles.textLabelContainer}>
+                                <Text style={styles.label}>Название:</Text>
+                                <Text style={styles.eventTitle}>{event.title}</Text>
+                            </View>
+                            <View style={styles.textLabelContainer}>
+                                <Text style={styles.label}>Дата проведения:</Text>
+                                <Text style={styles.eventDate}>{formatEventDate(event.date)}</Text>
+                            </View>
                         </View>
                     </View>
-
                 ))}
             </ScrollView>
-        </SafeAreaView>
+        </SafeAreaView >
     );
 };
 
@@ -75,27 +80,11 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: '#fff',
     },
-    header: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 12,
-        borderBottomWidth: 1,
-        borderBottomColor: '#eee',
-    },
-    backButton: {
-        marginRight: 16,
-    },
-    title: {
-        flex: 1,
-        fontSize: 24,
-        fontWeight: 'bold',
-        textAlign: 'center',
-    },
     eventsList: {
         padding: 16,
     },
     card: {
+        flexDirection: 'row',
         backgroundColor: '#fff',
         borderRadius: 15,
         marginBottom: 16,
@@ -107,14 +96,35 @@ const styles = StyleSheet.create({
         shadowOffset: { width: 0, height: 2 },
         elevation: 3,
         overflow: 'hidden',
+        alignItems: 'flex-start',
+    },
+    textLabelContainer: {
+        flexDirection: 'column',
+        marginBottom: 10
+    },
+
+    label: {
+        fontWeight: '400',
+        fontSize: 16,
+        marginBottom: 5
+    },
+    imageContainer: {
+        width: 150,
+        height: 240,
+        justifyContent: 'center',
+        alignItems: 'center',
+        padding: 8,
     },
     eventImage: {
         width: '100%',
-        height: 200, // adjust as needed
+        height: '100%',
         resizeMode: 'cover',
+        transform: [{ scale: 1 }]
     },
     cardContent: {
+        flex: 1,
         padding: 16,
+        justifyContent: 'center',
     },
     cardContentNoImage: {
         paddingTop: 16,
@@ -130,5 +140,4 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#000',
     },
-
 });
