@@ -10,7 +10,6 @@ import ScheduleDatePicker from '../components/ScheduleDatePicker';
 import ScheduleTable, { Lesson } from '../components/ScheduleTable';
 import { db } from '../services/firebaseConfig';
 
-// Helper function to generate date options
 const generateDateOptions = (baseDate: Date): string[] => {
     const options: string[] = [];
     for (let i = 0; i < 20; i++) {

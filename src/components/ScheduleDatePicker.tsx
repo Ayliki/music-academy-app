@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { ScrollView, TouchableOpacity, Text, StyleSheet, FlatList } from "react-native";
+import { View, ScrollView, TouchableOpacity, Text, StyleSheet } from "react-native";
 
 type ScheduleDatePickerProps = {
     dateOptions: string[];
@@ -8,36 +8,35 @@ type ScheduleDatePickerProps = {
 };
 
 const ScheduleDatePicker: React.FC<ScheduleDatePickerProps> = ({ dateOptions, selectedDay, onSelectDay }) => {
+
     return (
-        <FlatList
-            data={dateOptions}
-            horizontal
-            keyExtractor={(item, index) => index.toString()}
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.datePickerContainer}
-            renderItem={({ item }) => {
-                const isSelected = selectedDay === item;
-                const parts = item.split(" ");
-                const weekday = parts[0];
-                const dayNumber = parts[1];
-
-                return (
-                    <TouchableOpacity
-                        style={[styles.dateButton, isSelected && styles.dateButtonSelected]}
-                        onPress={() => onSelectDay(item)}
-                    >
-                        <Text style={[styles.dateText, isSelected && styles.dateTextSelected]}>
-                            {weekday}
-                        </Text>
-                        <Text style={[styles.dateText, isSelected && styles.dateTextSelected]}>
-                            {dayNumber}
-                        </Text>
-                    </TouchableOpacity>
-                );
-            }}
-            style={styles.flatList}
-        />
-
+        <View>
+            <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                style={styles.scrollView}
+                contentContainerStyle={styles.scrollViewContent}
+            >
+                {dateOptions.map((item, index) => {
+                    const isSelected = selectedDay === item;
+                    const [weekday, dayNumber] = item.split(" ");
+                    return (
+                        <TouchableOpacity
+                            key={index}
+                            style={[styles.dateButton, isSelected && styles.dateButtonSelected]}
+                            onPress={() => onSelectDay(item)}
+                        >
+                            <Text style={[styles.dateText, isSelected && styles.dateTextSelected]}>
+                                {weekday}
+                            </Text>
+                            <Text style={[styles.dateText, isSelected && styles.dateTextSelected]}>
+                                {dayNumber}
+                            </Text>
+                        </TouchableOpacity>
+                    );
+                })}
+            </ScrollView>
+        </View>
 
     );
 };
@@ -45,16 +44,12 @@ const ScheduleDatePicker: React.FC<ScheduleDatePickerProps> = ({ dateOptions, se
 export default ScheduleDatePicker;
 
 const styles = StyleSheet.create({
-    flatList: {
+    scrollView: {
         height: 53,
     },
-    datePickerContainer: {
-        paddingHorizontal: 16,
+    scrollViewContent: {
         height: 53,
-        justifyContent: 'center',
         alignItems: 'center',
-        overflow: 'hidden',
-        marginBottom: 8,
     },
     dateButton: {
         paddingVertical: 8,
