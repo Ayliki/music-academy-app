@@ -6,7 +6,9 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web"
+    "web": "expo start --web",
+    "seed-teachers": "ts-node scripts/seedTeachers.ts",
+    "seed-lessons": "ts-node scripts/seedLessons.ts"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.24.0",
