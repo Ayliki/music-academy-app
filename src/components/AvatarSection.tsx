@@ -14,7 +14,10 @@ const AvatarSection: React.FC<AvatarSectionProps> = ({ profile, isTeacher, onPho
         <View style={styles.avatarContainer}>
             {!isTeacher && (
                 <TouchableOpacity onPress={onPhotoOptions}>
-                    <ProfilePictureComponent profilePicture={profile.profilePicture} />
+                    <ProfilePictureComponent
+                        key={profile.profilePicture}
+                        profilePicture={profile.profilePicture}
+                    />
                 </TouchableOpacity>
             )}
             <Text style={styles.userName}>

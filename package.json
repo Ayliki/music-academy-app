@@ -8,7 +8,8 @@
     "ios": "expo start --ios",
     "web": "expo start --web",
     "seed-teachers": "ts-node scripts/seedTeachers.ts",
-    "seed-lessons": "ts-node scripts/seedLessons.ts"
+    "seed-lessons": "ts-node scripts/seedLessons.ts",
+    "seed-events": "ts-node scripts/seedEvents.ts"
   },
   "dependencies": {
     "@react-native-async-storage/async-storage": "^1.24.0",

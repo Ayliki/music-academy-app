@@ -2,8 +2,6 @@ import React from 'react';
 import {
     SafeAreaView,
     View,
-    Text,
-    TouchableOpacity,
     StyleSheet,
     useWindowDimensions,
 } from 'react-native';
@@ -45,9 +43,7 @@ const MenuScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            {/* Header*/}
             <HeaderMenu title={'Профиль'} onBack={() => navigation.goBack()} />
-            {/* Profile summary */}
             <ProfileSummary profile={userData} onPress={() => navigation.navigate('Profile')} />
 
             {/* Menu Items */}

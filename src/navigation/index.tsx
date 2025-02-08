@@ -10,6 +10,7 @@ import MenuScreen from '../screens/MenuScreen';
 import ApplicationScreen from '../screens/ApplicationScreen';
 import ScheduleScreen from '../screens/ScheduleScreen';
 import TeachersScreen from 'src/screens/TeachersScreen';
+import EventsScreen from 'src/screens/EventsScreen';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
@@ -25,6 +26,7 @@ const AppNavigator = () => {
                 <Stack.Screen name='Application' component={ApplicationScreen} />
                 <Stack.Screen name='Schedule' component={ScheduleScreen} />
                 <Stack.Screen name='Teachers' component={TeachersScreen} />
+                <Stack.Screen name='Events' component={EventsScreen} />
             </Stack.Navigator>
         </NavigationContainer>
     );

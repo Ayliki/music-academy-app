@@ -9,10 +9,15 @@ interface ProfileSummaryProps {
 }
 
 const ProfileSummary: React.FC<ProfileSummaryProps> = ({ profile, onPress }) => {
+    console.log("ProfileSummary profilePicture:", profile.profilePicture);
     const fullName = `${profile.lastName} ${profile.firstName}`;
     return (
         <TouchableOpacity style={styles.profileContainer} onPress={onPress}>
-            <ProfilePictureComponent profilePicture={profile.profilePicture} sizeMultiplier={0.25} />
+            <ProfilePictureComponent
+                key={profile.profilePicture}
+                profilePicture={profile.profilePicture}
+                sizeMultiplier={0.25}
+            />
             <View style={styles.profileTextContainer}>
                 <Text style={styles.profileName}>{fullName}</Text>
                 <Text style={styles.profileEmail}>{profile.email}</Text>
