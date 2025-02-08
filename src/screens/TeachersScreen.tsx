@@ -11,6 +11,8 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationProps } from 'src/navigation/types';
 
 const useTeachers = (): { teachers: any[]; setTeachers: React.Dispatch<React.SetStateAction<any[]>> } => {
     const [teachers, setTeachers] = useState<any[]>([]);
@@ -40,12 +42,14 @@ const teacherImages: { [key: string]: any } = {
 
 const TeachersScreen: React.FC = () => {
     const { teachers } = useTeachers();
+    const navigation = useNavigation<NavigationProps>();
 
     return (
         <SafeAreaView style={styles.container}>
             {/* Header Section */}
             <View style={styles.header}>
                 <TouchableOpacity style={styles.backButton} onPress={() => {
+                    navigation.navigate('Menu')
                 }}>
                     <Ionicons name="chevron-back" size={32} color="#000" />
                 </TouchableOpacity>

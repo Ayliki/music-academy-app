@@ -11,6 +11,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { collection, onSnapshot } from 'firebase/firestore';
 import { doc, setDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationProps } from 'src/navigation/types';
 
 const useLessons = (): { lessons: any[]; setLessons: React.Dispatch<React.SetStateAction<any[]>> } => {
     const [lessons, setLessons] = useState<any[]>([]);
@@ -54,6 +56,7 @@ const ScheduleScreen: React.FC = () => {
     const todayNum = today.getDate();
     const todayMonth = today.toLocaleDateString('ru-RU', { month: 'short' }).replace('.', '');
     const todayWeekday = today.toLocaleDateString('ru-RU', { weekday: 'short' }).replace('.', '');
+    const navigation = useNavigation<NavigationProps>();
 
     const defaultSelected = `${todayWeekday} ${todayNum}`;
     console.log("Default selected:", defaultSelected);
@@ -103,7 +106,7 @@ const ScheduleScreen: React.FC = () => {
         <SafeAreaView style={styles.safeArea}>
             {/* Header */}
             <View style={styles.header}>
-                <TouchableOpacity onPress={() => {/* Add back action */ }} style={styles.backButton}>
+                <TouchableOpacity onPress={() => { navigation.navigate('Menu') }} style={styles.backButton}>
                     <Ionicons name="chevron-back" size={32} color="#000" />
                 </TouchableOpacity>
                 {/* Date Info */}
