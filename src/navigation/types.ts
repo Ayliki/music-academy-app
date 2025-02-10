@@ -11,6 +11,7 @@ export type RootStackParamList = {
     Application: undefined;
     TeacherMenu: undefined;
     Schedule: undefined;
+    AdminMenu: undefined;
     EnterCode: { email: string };
 };
 

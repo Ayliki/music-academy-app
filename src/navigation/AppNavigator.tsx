@@ -1,12 +1,11 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoadingScreen from 'src/components/LoadingOverlay';
-import TeacherMenuScreen from 'src/screens/TeacherMenuScreen';
 import LoginScreen from 'src/screens/LoginScreen';
 import MenuScreen from 'src/screens/MenuScreen';
 import { useAuth } from 'src/context/AuthContext';
-import ProfileScreen from 'src/screens/ProfileScreen';
 import TeacherStack from './TeacherStack';
+import AdminStack from './AdminStack';
 
 const Stack = createStackNavigator();
 
@@ -34,7 +33,9 @@ const AppNavigator: React.FC = () => {
         return <AuthStack />;
     }
 
-    if (role === 'teacher') {
+    if (role === 'administrator') {
+        return <AdminStack />;
+    } else if (role === 'teacher') {
         return <TeacherStack />;
     } else {
         return <UserStack />;

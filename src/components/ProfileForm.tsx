@@ -22,7 +22,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ initialValues, onSubmit }) =>
     if (initialValues.role === 'teacher') {
         buttonColor = '#314FBB';
     } else if (initialValues.role === 'administrator') {
-        buttonColor = '#FF4500';
+        buttonColor = '#4DD3BA';
     }
     return (
         <Formik initialValues={initialValues} validationSchema={ProfileSchema} onSubmit={onSubmit}>
@@ -38,7 +38,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ initialValues, onSubmit }) =>
             }) => (
                 <View style={styles.formContainer}>
                     <Text style={styles.label}>
-                        {initialValues.role === 'teacher' ? 'Фамилия' : 'Фамилия ребенка'}
+                        {(initialValues.role === 'teacher' || initialValues.role === 'administrator') ? 'Фамилия' : 'Фамилия ребенка'}
                     </Text>
                     <TextInput
                         style={styles.input}
@@ -52,7 +52,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ initialValues, onSubmit }) =>
                     )}
 
                     <Text style={styles.label}>
-                        {initialValues.role === 'teacher' ? 'Имя' : 'Имя ребенка'}
+                        {(initialValues.role === 'teacher' || initialValues.role === 'administrator') ? 'Имя' : 'Имя ребенка'}
                     </Text>
                     <TextInput
                         style={styles.input}
@@ -66,7 +66,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ initialValues, onSubmit }) =>
                     )}
 
                     <Text style={styles.label}>
-                        {initialValues.role === 'teacher'
+                        {(initialValues.role === 'teacher' || initialValues.role === 'administrator')
                             ? 'Отчество (при наличии)'
                             : 'Отчество ребенка (при наличии)'}
                     </Text>
@@ -82,7 +82,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ initialValues, onSubmit }) =>
                     )}
 
                     <Text style={styles.label}>
-                        {initialValues.role === 'teacher'
+                        {(initialValues.role === 'teacher' || initialValues.role === 'administrator')
                             ? 'Номер телефона'
                             : 'Номер телефона родителя'}
                     </Text>
