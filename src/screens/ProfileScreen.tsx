@@ -47,6 +47,7 @@ const ProfileScreen: React.FC = () => {
                 onAddFromGallery={handleAddFromGallery}
                 onTakePhoto={handleTakePhoto}
                 onRemovePhoto={handleRemovePhoto}
+                role={initialValues.role}
             />
             {/* Header */}
             <HeaderMenu title={'Профиль'} onBack={() => navigation.goBack()} />
