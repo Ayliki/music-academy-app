@@ -18,6 +18,12 @@ interface ProfileFormProps {
 }
 
 const ProfileForm: React.FC<ProfileFormProps> = ({ initialValues, onSubmit }) => {
+    let buttonColor = '#9999FF'
+    if (initialValues.role === 'teacher') {
+        buttonColor = '#314FBB';
+    } else if (initialValues.role === 'administrator') {
+        buttonColor = '#FF4500';
+    }
     return (
         <Formik initialValues={initialValues} validationSchema={ProfileSchema} onSubmit={onSubmit}>
             {({
@@ -106,7 +112,7 @@ const ProfileForm: React.FC<ProfileFormProps> = ({ initialValues, onSubmit }) =>
                     )}
 
                     <TouchableOpacity
-                        style={styles.submitButton}
+                        style={[styles.submitButton, { backgroundColor: buttonColor }]}
                         onPress={() => handleSubmit()}
                         disabled={!dirty || isSubmitting}
                     >
@@ -151,7 +157,6 @@ const styles = StyleSheet.create({
     },
     submitButton: {
         height: 52,
-        backgroundColor: '#9999FF',
         borderRadius: 8,
         justifyContent: 'center',
         alignItems: 'center',
