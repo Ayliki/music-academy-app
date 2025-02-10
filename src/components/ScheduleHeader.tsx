@@ -1,12 +1,14 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import { useAuth } from "src/context/AuthContext";
+import { NavigationProps } from "src/navigation/types";
 
 type ScheduleHeaderProps = {
     todayNum: number;
     todayMonth: string;
     todayWeekday: string;
-    onBack: () => void;
     onTodayPress: () => void;
 };
 
@@ -14,12 +16,22 @@ const ScheduleHeader: React.FC<ScheduleHeaderProps> = ({
     todayNum,
     todayMonth,
     todayWeekday,
-    onBack,
     onTodayPress,
 }) => {
+    const navigation = useNavigation<NavigationProps>();
+    const { role } = useAuth();
+
+    const handleBack = () => {
+        if (role === "teacher") {
+            navigation.navigate("TeacherMenu");
+        } else {
+            navigation.navigate("Menu");
+        }
+    };
+
     return (
         <View style={styles.header}>
-            <TouchableOpacity style={styles.backButton} onPress={onBack}>
+            <TouchableOpacity style={styles.backButton} onPress={(handleBack)}>
                 <Ionicons name="chevron-back" size={32} color="#000" />
             </TouchableOpacity>
             <View style={styles.dateInfoContainer}>

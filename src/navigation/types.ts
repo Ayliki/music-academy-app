@@ -9,6 +9,7 @@ export type RootStackParamList = {
     Teachers: undefined;
     Events: undefined;
     Application: undefined;
+    TeacherMenu: undefined;
     Schedule: undefined;
     EnterCode: { email: string };
 };
