@@ -11,10 +11,6 @@ const TeachersScreen: React.FC = () => {
     const { teachers } = useTeachers();
     const navigation = useNavigation<NavigationProps>();
 
-    const handleBack = () => {
-        navigation.navigate('Menu');
-    };
-
     return (
         <SafeAreaView style={styles.container}>
             <HeaderMenu title={'Преподаватели'} onBack={() => navigation.navigate('Menu')} />

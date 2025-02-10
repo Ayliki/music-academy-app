@@ -2,20 +2,41 @@ import { useEffect, useState } from "react";
 import { collection, onSnapshot } from "firebase/firestore";
 import { db } from "src/services/firebaseConfig";
 
-export const useTeachers = (): { teachers: any[]; setTeachers: React.Dispatch<React.SetStateAction<any[]>> } => {
-    const [teachers, setTeachers] = useState<any[]>([]);
+export type Teacher = {
+    id: string;
+    name: string;
+    subject: string;
+    photo: string;
+};
+
+export const useTeachers = (): { teachers: Teacher[]; setTeachers: React.Dispatch<React.SetStateAction<Teacher[]>> } => {
+    const [teachers, setTeachers] = useState<Teacher[]>([]);
 
     useEffect(() => {
         const teachersCol = collection(db, 'teachers');
         const unsubscribe = onSnapshot(teachersCol, (snapshot) => {
-            const teachersData = snapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data(),
-            }));
+            console.log("Received snapshot, count:", snapshot.docs.length);
+            snapshot.docs.forEach(doc => {
+                console.log("Document", doc.id, "data:", doc.data());
+            });
+            const teachersData = snapshot.docs.map(doc => {
+                const data = doc.data();
+                const firstName = data.firstName ? data.firstName.toString().trim() : "";
+                const lastName = data.lastName ? data.lastName.toString().trim() : "";
+                const displayName = `${lastName} ${firstName}`
+                return {
+                    id: doc.id,
+                    name: displayName,
+                    subject: data.subject,
+                    photo: data.photo,
+                };
+            });
+            console.log("Mapped teachersData:", teachersData);
             setTeachers(teachersData);
         });
         return () => unsubscribe();
     }, []);
+
 
     return { teachers, setTeachers };
 };

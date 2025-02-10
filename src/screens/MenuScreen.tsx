@@ -24,11 +24,10 @@ interface MenuItemData {
 const MenuScreen: React.FC = () => {
     const { width } = useWindowDimensions();
     const navigation = useNavigation<NavigationProps>();
-    const { userData, isLoading, error, refetch } = useUserData();
+    const { userData, isLoading, refetch } = useUserData();
 
     useFocusEffect(
         React.useCallback(() => {
-            // Refetch user data whenever MenuScreen is focused
             refetch();
         }, [refetch])
     );

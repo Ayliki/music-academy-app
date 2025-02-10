@@ -21,7 +21,6 @@ type TeacherCardProps = {
 };
 
 const TeacherCard: React.FC<TeacherCardProps> = ({ teacher }) => {
-
     return (
         <View style={styles.card}>
             <View style={styles.imageContainer}>
