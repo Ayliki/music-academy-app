@@ -8,6 +8,8 @@ import MenuItem from '../components/MenuItem';
 import { useUserData } from 'src/hooks/useUserData';
 import LoadingOverlay from 'src/components/LoadingOverlay';
 import ProfileSummary from 'src/components/ProfileSummary';
+import { signOut } from 'firebase/auth';
+import { auth } from 'src/services/firebaseConfig';
 
 interface TeacherMenuItemData {
     label: string;
@@ -25,11 +27,19 @@ const TeacherMenuScreen: React.FC = () => {
         return <LoadingOverlay visible={true} />;
     }
 
+    const handleLogout = async () => {
+        try {
+            await signOut(auth);
+        } catch (error: any) {
+            console.error('Error signing out:', error.message);
+        }
+    };
+
     const menuItems: TeacherMenuItemData[] = [
         { label: 'Профиль', screen: 'Profile', icon: 'person' },
         { label: 'События', screen: 'Events', icon: 'calendar' },
         { label: 'Расписание', screen: 'TeacherSchedule', icon: 'time' },
-        { label: 'Выйти', onPress: () => navigation.navigate('Login'), icon: 'log-out' },
+        { label: 'Выйти', onPress: handleLogout, icon: 'log-out' },
     ];
 
     return (
