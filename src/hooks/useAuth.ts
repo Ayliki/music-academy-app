@@ -14,7 +14,7 @@ export const useAuth = () => {
         try {
             setIsLoading(true);
             // Check if user exists in Firestore
-            const userDocRef = doc(db, 'users', email.toLowerCase());
+            const userDocRef = doc(db, 'users', email?.toLowerCase() || '');
             const userDoc = await getDoc(userDocRef);
             if (!userDoc.exists) {
                 Alert.alert('Ошибка', 'Такой пользователь не зарегистрирован');

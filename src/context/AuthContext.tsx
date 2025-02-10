@@ -34,7 +34,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (authenticatedUser) => {
             setUser(authenticatedUser);
-            setLoading(false);
 
             if (authenticatedUser) {
                 try {
@@ -42,6 +41,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                     const docSnap = await getDoc(userDocRef);
                     if (docSnap.exists()) {
                         const data = docSnap.data();
+                        console.log('Fetched role:', data.role);
                         setRole(data.role ?? 'default');
                     } else {
                         setRole('default');
@@ -54,6 +54,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             } else {
                 setRole(null);
             }
+
+            setLoading(false);
         });
 
         return () => unsubscribe();
