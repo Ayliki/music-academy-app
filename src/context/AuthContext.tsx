@@ -18,6 +18,14 @@ interface AuthProviderProps {
     children: ReactNode;
 }
 
+export const useRoleFlags = () => {
+    const { role } = useAuth();
+    return {
+        isTeacher: role === 'teacher',
+        isAdmin: role === 'administrator',
+    };
+};
+
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [user, setUser] = useState<User | null>(null);
     const [loading, setLoading] = useState(true);
