@@ -8,7 +8,7 @@ export interface UserProfile {
     phone?: string;
     email?: string;
     profilePicture?: string;
-    role?: string;
+    role?: "teacher" | "administrator" | "default";
 }
 
 export const updateUserProfile = async (values: UserProfile): Promise<void> => {

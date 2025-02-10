@@ -39,7 +39,7 @@ const ProfileScreen: React.FC = () => {
     return (
         <SafeAreaView style={styles.safeArea}>
             {/* Pop up Alert */}
-            <CustomAlert visible={isAlertVisible} onClose={() => setIsAlertVisible(false)} />
+            <CustomAlert visible={isAlertVisible} onClose={() => setIsAlertVisible(false)} role={initialValues.role} />
             {/* Pop up Photo Options Modal */}
             <PhotoOptionsModal
                 visible={isPhotoOptionsVisible}

@@ -4,9 +4,18 @@ import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 interface CustomAlertProps {
     visible: boolean;
     onClose: () => void;
+    role?: 'teacher' | 'administrator' | 'default';
 }
 
-const CustomAlert: React.FC<CustomAlertProps> = ({ visible, onClose }) => {
+const CustomAlert: React.FC<CustomAlertProps> = ({ visible, onClose, role = 'default' }) => {
+    const okButtonBackgroundColor =
+        role === 'teacher'
+            ? '#314FBB'
+            : role === 'administrator'
+                ? '#4DD3BA'
+                : '#98A7DD';
+
+
     return (
         <Modal visible={visible} transparent animationType="fade">
             <View style={styles.modalContainer}>
@@ -19,7 +28,7 @@ const CustomAlert: React.FC<CustomAlertProps> = ({ visible, onClose }) => {
                             Изменения успешно сохранены!
                         </Text>
                     </View>
-                    <TouchableOpacity onPress={onClose} style={styles.okButton}>
+                    <TouchableOpacity onPress={onClose} style={[styles.okButton, { backgroundColor: okButtonBackgroundColor }]}>
                         <Text style={styles.okText}>Ок</Text>
                     </TouchableOpacity>
                 </View>
@@ -75,7 +84,6 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#00A9E3',
         borderRadius: 4,
-        backgroundColor: '#98A7DD',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 10,
