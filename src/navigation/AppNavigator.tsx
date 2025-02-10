@@ -1,7 +1,7 @@
 import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import LoadingScreen from 'src/components/LoadingOverlay';
-import TeacherMenuScreen from 'src/components/TeacherMenuScreen';
+import TeacherMenuScreen from 'src/screens/TeacherMenuScreen';
 import LoginScreen from 'src/screens/LoginScreen';
 import MenuScreen from 'src/screens/MenuScreen';
 import { useAuth } from 'src/context/AuthContext';

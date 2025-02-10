@@ -1,4 +1,3 @@
-// src/screens/TeachersScreen.tsx
 import React from 'react';
 import { SafeAreaView, StyleSheet } from 'react-native';
 import TeachersList from 'src/components/TeacherList';

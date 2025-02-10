@@ -5,9 +5,9 @@ import { useNavigation } from '@react-navigation/native';
 import { NavigationProps } from '../navigation/types';
 import HeaderMenu from '../components/HeaderMenu';
 import MenuItem from '../components/MenuItem';
-import ProfileSummary from './ProfileSummary';
 import { useUserData } from 'src/hooks/useUserData';
-import LoadingOverlay from './LoadingOverlay';
+import LoadingOverlay from 'src/components/LoadingOverlay';
+import ProfileSummary from 'src/components/ProfileSummary';
 
 interface TeacherMenuItemData {
     label: string;
