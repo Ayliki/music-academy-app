@@ -12,14 +12,13 @@ interface AvatarSectionProps {
 const AvatarSection: React.FC<AvatarSectionProps> = ({ profile, isTeacher, onPhotoOptions }) => {
     return (
         <View style={styles.avatarContainer}>
-            {!isTeacher && (
-                <TouchableOpacity onPress={onPhotoOptions}>
-                    <ProfilePictureComponent
-                        key={profile.profilePicture}
-                        profilePicture={profile.profilePicture}
-                    />
-                </TouchableOpacity>
-            )}
+
+            <TouchableOpacity onPress={onPhotoOptions}>
+                <ProfilePictureComponent
+                    key={profile.profilePicture}
+                    profilePicture={profile.profilePicture}
+                />
+            </TouchableOpacity>
             <Text style={styles.userName}>
                 {profile.lastName} {profile.firstName}
             </Text>

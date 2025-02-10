@@ -5,6 +5,8 @@ import TeacherMenuScreen from 'src/components/TeacherMenuScreen';
 import LoginScreen from 'src/screens/LoginScreen';
 import MenuScreen from 'src/screens/MenuScreen';
 import { useAuth } from 'src/context/AuthContext';
+import ProfileScreen from 'src/screens/ProfileScreen';
+import TeacherStack from './TeacherStack';
 
 const Stack = createStackNavigator();
 
@@ -20,11 +22,6 @@ const UserStack = () => (
     </Stack.Navigator>
 );
 
-const TeacherStack = () => (
-    <Stack.Navigator>
-        <Stack.Screen name="TeacherMenu" component={TeacherMenuScreen} options={{ headerShown: false }} />
-    </Stack.Navigator>
-);
 
 const AppNavigator: React.FC = () => {
     const { user, role, loading } = useAuth();
