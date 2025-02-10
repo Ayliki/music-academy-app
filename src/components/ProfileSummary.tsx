@@ -10,16 +10,29 @@ interface ProfileSummaryProps {
 
 const ProfileSummary: React.FC<ProfileSummaryProps> = ({ profile, onPress }) => {
     const fullName = `${profile.lastName} ${profile.firstName}`;
+
+    let containerBackgroundColor = '#D6DCF1';
+    if (profile.role === 'teacher') {
+        containerBackgroundColor = '#314FBB';
+    } else if (profile.role === 'administrator') {
+        containerBackgroundColor = '#4DD3BA';
+    }
+
+    let textColor = '#000';
+    if (profile.role === 'teacher' || profile.role === 'administrator') {
+        textColor = '#fff';
+    }
+
     return (
-        <TouchableOpacity style={styles.profileContainer} onPress={onPress}>
+        <TouchableOpacity style={[styles.profileContainer, , { backgroundColor: containerBackgroundColor }]} onPress={onPress}>
             <ProfilePictureComponent
                 key={profile.profilePicture}
                 profilePicture={profile.profilePicture}
                 sizeMultiplier={0.25}
             />
             <View style={styles.profileTextContainer}>
-                <Text style={styles.profileName}>{fullName}</Text>
-                <Text style={styles.profileEmail}>{profile.email}</Text>
+                <Text style={[styles.profileName, { color: textColor }]}>{fullName}</Text>
+                <Text style={[styles.profileEmail, { color: textColor }]}>{profile.email}</Text>
             </View>
         </TouchableOpacity>
     );
@@ -32,7 +45,6 @@ const styles = StyleSheet.create({
         width: '90%',
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#D6DCF1',
         borderRadius: 15,
         padding: 16,
         marginHorizontal: '5%',
