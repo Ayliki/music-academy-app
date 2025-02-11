@@ -12,6 +12,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
+import CustomAlert from './CustomAlert';
 
 interface EditTeacherModalProps {
     visible: boolean;
@@ -35,7 +36,7 @@ const teacherImages: { [key: string]: any } = {
 const EditTeacherModal: React.FC<EditTeacherModalProps> = ({ visible, onClose, teacher }) => {
     const [name, setName] = useState(teacher.name);
     const [subject, setSubject] = useState(teacher.subject);
-
+    const [isAlertVisible, setIsAlertVisible] = useState(false);
     const [photo, setPhoto] = useState<string>(teacher.photo);
     const [loading, setLoading] = useState(false);
 
@@ -76,8 +77,7 @@ const EditTeacherModal: React.FC<EditTeacherModalProps> = ({ visible, onClose, t
                 subject,
                 photo: photo.trim() !== '' ? photo : null,
             });
-            Alert.alert('Успех', 'Преподаватель обновлен');
-            onClose();
+            setIsAlertVisible(true);
         } catch (error: any) {
             console.error('Error updating teacher:', error);
             Alert.alert('Ошибка', error.message);
@@ -138,7 +138,11 @@ const EditTeacherModal: React.FC<EditTeacherModalProps> = ({ visible, onClose, t
                             {loading ? 'Сохранение...' : 'Сохранить'}
                         </Text>
                     </TouchableOpacity>
-
+                    <CustomAlert
+                        visible={isAlertVisible}
+                        onClose={() => setIsAlertVisible(false)}
+                        role="teacher" // or role as appropriate
+                    />
                 </View>
             </View>
         </Modal>
