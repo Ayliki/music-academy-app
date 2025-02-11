@@ -48,7 +48,7 @@ const EventsScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <HeaderMenu title="События" onBack={() => navigation.navigate('Menu')} />
+            <HeaderMenu title="События" onBack={() => navigation.navigate('AdminMenu')} />
             <ScrollView contentContainerStyle={styles.eventsList}>
                 {events.map((event) => (
                     <View key={event.id} style={styles.eventContainer}>
