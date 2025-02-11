@@ -10,6 +10,14 @@ const eventImages: { [key: string]: any } = {
     'event1.png': require('../../assets/images/events/event1.png'),
 };
 
+const getImageSource = (image: string) => {
+    if (eventImages.hasOwnProperty(image)) {
+        return eventImages[image];
+    }
+    return { uri: image };
+};
+
+
 const formatEventDate = (dateStr: string): string => {
     const [year, month, day] = dateStr.split('-');
     return `${day}.${month}.${year}`;
@@ -21,11 +29,12 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
             {event.image ? (
                 <View style={styles.imageContainer}>
                     <Image
-                        source={eventImages[event.image]}
+                        source={getImageSource(event.image)}
                         style={styles.eventImage}
                     />
                 </View>
             ) : null}
+
             <View style={[styles.cardContent, !event.image && styles.cardContentNoImage]}>
                 <View style={styles.textLabelContainer}>
                     <Text style={styles.label}>Название:</Text>
