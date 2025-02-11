@@ -20,7 +20,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
     const [title, setTitle] = useState('');
     const [date, setDate] = useState('');
     const [time, setTime] = useState('');
-    const [image, setImage] = useState<string | undefined>(undefined);
+    const [image, setImage] = useState<string>(''); // Initialized as empty string
     const [loading, setLoading] = useState(false);
 
     const handlePickPhoto = async () => {
@@ -34,22 +34,25 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
         }
         try {
             setLoading(true);
-            const newEvent = {
+            // Build event object, omitting image if empty.
+            const newEvent: any = {
                 title,
                 date,
                 time,
-                image,
                 description: '',
                 location: '',
             };
+            if (image.trim() !== '') {
+                newEvent.image = image;
+            }
             await addDoc(collection(db, 'events'), newEvent);
             Alert.alert('Успех', 'Событие добавлено');
-            onClose(); // Close the modal after saving.
-            // Optionally, clear the form:
+            onClose();
+            // Clear the form:
             setTitle('');
             setDate('');
             setTime('');
-            setImage(undefined);
+            setImage('');
         } catch (error: any) {
             console.error('Error saving event:', error);
             Alert.alert('Ошибка', error.message);
@@ -60,35 +63,55 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
 
     return (
         <Modal visible={visible} transparent animationType="fade">
-            <View style={addModalStyles.modalContainer}>
-                <View style={addModalStyles.popup}>
-                    <TouchableOpacity onPress={onClose} style={addModalStyles.closeButton}>
-                        <Text style={addModalStyles.closeText}>×</Text>
+            <View style={styles.modalContainer}>
+                <View style={styles.popup}>
+                    <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                        <Text style={styles.closeText}>×</Text>
                     </TouchableOpacity>
-                    <Text style={addModalStyles.title}>Добавить событие</Text>
-                    <TextInput
-                        style={addModalStyles.input}
-                        placeholder="Название"
-                        value={title}
-                        onChangeText={setTitle}
-                    />
-                    <TextInput
-                        style={addModalStyles.input}
-                        placeholder="Дата (например, 2025-02-10)"
-                        value={date}
-                        onChangeText={setDate}
-                    />
-                    <TextInput
-                        style={addModalStyles.input}
-                        placeholder="Время (например, 14:00)"
-                        value={time}
-                        onChangeText={setTime}
-                    />
-                    <TouchableOpacity onPress={handlePickPhoto} style={addModalStyles.photoButton}>
-                        <Text style={addModalStyles.photoButtonText}>Добавить фото</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={handleSave} style={addModalStyles.saveButton}>
-                        <Text style={addModalStyles.saveButtonText}>
+
+                    <View style={styles.formRow}>
+                        <TouchableOpacity
+                            onPress={handlePickPhoto}
+                            style={styles.photoPlaceholder}
+                        >
+                            {image ? (
+                                <Text style={styles.photoPlaceholderText}>Фото выбрано</Text>
+                            ) : (
+                                <Text style={styles.photoPlaceholderText}>Добавить фото</Text>
+                            )}
+                        </TouchableOpacity>
+                        <View style={styles.inputsContainer}>
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>Название:</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="Название"
+                                    value={title}
+                                    onChangeText={setTitle}
+                                />
+                            </View>
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>Дата:</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="2025-02-10"
+                                    value={date}
+                                    onChangeText={setDate}
+                                />
+                            </View>
+                            <View style={styles.inputGroup}>
+                                <Text style={styles.label}>Время:</Text>
+                                <TextInput
+                                    style={styles.input}
+                                    placeholder="14:00"
+                                    value={time}
+                                    onChangeText={setTime}
+                                />
+                            </View>
+                        </View>
+                    </View>
+                    <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
+                        <Text style={styles.saveButtonText}>
                             {loading ? 'Сохранение...' : 'Сохранить'}
                         </Text>
                     </TouchableOpacity>
@@ -100,7 +123,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
 
 export default AddEventModal;
 
-const addModalStyles = StyleSheet.create({
+const styles = StyleSheet.create({
     modalContainer: {
         flex: 1,
         backgroundColor: 'rgba(0,0,0,0.3)',
@@ -123,43 +146,64 @@ const addModalStyles = StyleSheet.create({
         fontSize: 30,
         color: '#000',
     },
-    title: {
+    modalTitle: {
         fontSize: 20,
         fontWeight: '700',
         marginVertical: 10,
         color: '#000',
     },
-    input: {
+    formRow: {
+        flexDirection: 'row',
         width: '100%',
-        height: 48,
-        borderWidth: 0.7,
-        borderColor: '#CCC',
-        borderRadius: 8,
-        paddingHorizontal: 12,
-        marginVertical: 8,
+        marginVertical: 10,
     },
-    photoButton: {
-        marginVertical: 8,
-        backgroundColor: '#E9F4EF',
-        paddingVertical: 10,
-        paddingHorizontal: 16,
+    photoPlaceholder: {
+        width: '40%',
+        aspectRatio: 1,
+        backgroundColor: '#D9D9D9',
+        justifyContent: 'center',
+        alignItems: 'center',
         borderRadius: 8,
+        marginRight: 10,
     },
-    photoButtonText: {
-        color: '#4DC591',
+    photoPlaceholderText: {
+        padding: 4,
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: 400,
+        textAlign: 'center',
+    },
+    inputsContainer: {
+        flex: 1,
+        justifyContent: 'space-between',
+    },
+    inputGroup: {
+        marginBottom: 2,
+    },
+    label: {
+        fontSize: 16,
+        marginBottom: 4,
+        color: '#000',
+    },
+    input: {
+        height: 48,
+        borderWidth: 1,
+        maxHeight: 35,
+        borderRadius: 15,
+        paddingHorizontal: 12,
     },
     saveButton: {
+        width: '70%',
         marginTop: 16,
-        backgroundColor: '#00A9E3',
-        paddingVertical: 12,
+        backgroundColor: '#43B39E',
+        paddingVertical: 10,
         paddingHorizontal: 24,
         borderRadius: 8,
+        maxHeight: 40,
+        alignItems: 'center',
     },
     saveButtonText: {
         color: '#fff',
         fontSize: 18,
-        fontWeight: '600',
+        fontWeight: '700',
     },
 });
