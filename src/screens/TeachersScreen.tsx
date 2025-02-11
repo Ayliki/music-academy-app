@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, TouchableOpacity, Text } from 'react-native';
+import { SafeAreaView, StyleSheet, TouchableOpacity, Text, Alert } from 'react-native';
 import TeachersList from 'src/components/TeacherList';
 import { useTeachers } from '../hooks/useTeachers';
 import { useNavigation } from '@react-navigation/native';
@@ -7,6 +7,8 @@ import { NavigationProps } from 'src/navigation/types';
 import HeaderMenu from 'src/components/HeaderMenu';
 import { useAuth } from 'src/context/AuthContext';
 import EditTeacherModal from 'src/components/EditTeacherModal';
+import { deleteDoc, doc } from 'firebase/firestore';
+import { db } from 'src/services/firebaseConfig';
 
 const TeachersScreen: React.FC = () => {
     const { teachers } = useTeachers();
@@ -20,7 +22,26 @@ const TeachersScreen: React.FC = () => {
     };
 
     const handleDeleteTeacher = async (teacher: any) => {
-        // Implement teacher deletion logic here (e.g., call Firestore delete)
+        try {
+            Alert.alert(
+                'Подтверждение удаления',
+                'Вы уверены, что хотите удалить преподавателя?',
+                [
+                    { text: 'Отмена', style: 'cancel' },
+                    {
+                        text: 'Удалить',
+                        style: 'destructive',
+                        onPress: async () => {
+                            await deleteDoc(doc(db, 'users', teacher.id));
+                            Alert.alert('Успех', 'Преподаватель удален');
+                        }
+                    }
+                ]
+            );
+        } catch (error: any) {
+            console.error('Ошибка при удалении преподавателя:', error);
+            Alert.alert('Ошибка', error.message);
+        }
     };
 
     return (
