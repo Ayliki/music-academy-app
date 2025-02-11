@@ -9,16 +9,24 @@ import { useAuth } from 'src/context/AuthContext';
 import EditTeacherModal from 'src/components/EditTeacherModal';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { db } from 'src/services/firebaseConfig';
+import CustomAlert from 'src/components/CustomAlert';
 
 const TeachersScreen: React.FC = () => {
     const { teachers } = useTeachers();
     const { role } = useAuth();
     const navigation = useNavigation<NavigationProps>();
     const [teacherToEdit, setTeacherToEdit] = useState<any>(null);
-    const [isAddTeacherModalVisible, setIsAddTeacherModalVisible] = useState(false);
+    const [isConfirmVisible, setIsConfirmVisible] = useState(false);
 
     const handleEditTeacher = (teacher: any) => {
         setTeacherToEdit(teacher);
+    };
+
+    const handleEditSuccess = () => {
+        setTeacherToEdit(null);
+        setTimeout(() => {
+            setIsConfirmVisible(true);
+        }, 300);
     };
 
     const handleDeleteTeacher = async (teacher: any) => {
@@ -53,27 +61,21 @@ const TeachersScreen: React.FC = () => {
                 onEditTeacher={handleEditTeacher}
                 onDeleteTeacher={handleDeleteTeacher}
             />
-            {role === 'administrator' && (
-                <TouchableOpacity
-                    style={styles.addButton}
-                    onPress={() => setIsAddTeacherModalVisible(true)}
-                >
-                    <Text style={styles.addButtonText}>Добавить преподавателя</Text>
-                </TouchableOpacity>
-            )}
             {teacherToEdit && (
                 <EditTeacherModal
                     visible={true}
                     onClose={() => setTeacherToEdit(null)}
                     teacher={teacherToEdit}
+                    onConfirm={handleEditSuccess}
                 />
             )}
-            {/* {role === 'administrator' && (
-                <AddTeacherModal
-                    visible={isAddTeacherModalVisible}
-                    onClose={() => setIsAddTeacherModalVisible(false)}
+            {role === 'administrator' && (
+                <CustomAlert
+                    visible={isConfirmVisible}
+                    onClose={() => setIsConfirmVisible(false)}
+                    role="administrator"
                 />
-            )} */}
+            )}
         </SafeAreaView>
     );
 };
@@ -87,7 +89,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Outfit',
     },
     addButton: {
-        backgroundColor: '#00A9E3',
+        backgroundColor: '#4DD3BA;',
         paddingVertical: 12,
         paddingHorizontal: 24,
         borderRadius: 8,

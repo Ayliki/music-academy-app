@@ -1,18 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import {
-    Modal,
-    View,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    StyleSheet,
-    Alert,
-    Image,
-} from 'react-native';
+import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
-import CustomAlert from './CustomAlert';
 
 interface EditTeacherModalProps {
     visible: boolean;
@@ -23,6 +13,7 @@ interface EditTeacherModalProps {
         subject: string;
         photo: string;
     };
+    onConfirm?: () => void;
 }
 
 const teacherImages: { [key: string]: any } = {
@@ -33,10 +24,9 @@ const teacherImages: { [key: string]: any } = {
     'teacher5.jpg': require('../../assets/images/teachers/teacher5.png'),
 };
 
-const EditTeacherModal: React.FC<EditTeacherModalProps> = ({ visible, onClose, teacher }) => {
+const EditTeacherModal: React.FC<EditTeacherModalProps> = ({ visible, onClose, teacher, onConfirm }) => {
     const [name, setName] = useState(teacher.name);
     const [subject, setSubject] = useState(teacher.subject);
-    const [isAlertVisible, setIsAlertVisible] = useState(false);
     const [photo, setPhoto] = useState<string>(teacher.photo);
     const [loading, setLoading] = useState(false);
 
@@ -45,7 +35,6 @@ const EditTeacherModal: React.FC<EditTeacherModalProps> = ({ visible, onClose, t
         setSubject(teacher.subject);
         setPhoto(teacher.photo);
     }, [teacher]);
-
 
     const handlePickPhoto = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -77,7 +66,8 @@ const EditTeacherModal: React.FC<EditTeacherModalProps> = ({ visible, onClose, t
                 subject,
                 photo: photo.trim() !== '' ? photo : null,
             });
-            setIsAlertVisible(true);
+            onClose();
+            onConfirm && onConfirm();
         } catch (error: any) {
             console.error('Error updating teacher:', error);
             Alert.alert('Ошибка', error.message);
@@ -93,6 +83,7 @@ const EditTeacherModal: React.FC<EditTeacherModalProps> = ({ visible, onClose, t
                     <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                         <Text style={styles.closeText}>×</Text>
                     </TouchableOpacity>
+                    {/* Remove modal title if not needed */}
                     <View style={styles.formRow}>
                         <TouchableOpacity onPress={handlePickPhoto} style={styles.photoPlaceholder}>
                             {photo ? (
@@ -105,14 +96,13 @@ const EditTeacherModal: React.FC<EditTeacherModalProps> = ({ visible, onClose, t
                                     style={styles.photoImage}
                                     onError={() => setPhoto('')}
                                 />
-
                             ) : (
                                 <Text style={styles.photoPlaceholderText}>Выбрать фото</Text>
                             )}
                         </TouchableOpacity>
                         <View style={styles.inputsContainer}>
                             <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Введите Отображаемое имя:</Text>
+                                <Text style={styles.label}>Введите имя:</Text>
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Имя"
@@ -138,11 +128,6 @@ const EditTeacherModal: React.FC<EditTeacherModalProps> = ({ visible, onClose, t
                             {loading ? 'Сохранение...' : 'Сохранить'}
                         </Text>
                     </TouchableOpacity>
-                    <CustomAlert
-                        visible={isAlertVisible}
-                        onClose={() => setIsAlertVisible(false)}
-                        role="teacher" // or role as appropriate
-                    />
                 </View>
             </View>
         </Modal>
@@ -172,12 +157,6 @@ const styles = StyleSheet.create({
     },
     closeText: {
         fontSize: 30,
-        color: '#000',
-    },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: '700',
-        marginVertical: 10,
         color: '#000',
     },
     formRow: {
@@ -210,7 +189,7 @@ const styles = StyleSheet.create({
     },
     inputsContainer: {
         flex: 1,
-        justifyContent: 'space-between',
+        justifyContent: 'flex-start',
         marginTop: 10,
     },
     inputGroup: {

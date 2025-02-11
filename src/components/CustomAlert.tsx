@@ -15,7 +15,6 @@ const CustomAlert: React.FC<CustomAlertProps> = ({ visible, onClose, role = 'def
                 ? '#4DD3BA'
                 : '#98A7DD';
 
-
     return (
         <Modal visible={visible} transparent animationType="fade">
             <View style={styles.modalContainer}>
@@ -24,11 +23,12 @@ const CustomAlert: React.FC<CustomAlertProps> = ({ visible, onClose, role = 'def
                         <Text style={styles.closeText}>×</Text>
                     </TouchableOpacity>
                     <View style={styles.contentContainer}>
-                        <Text style={styles.message}>
-                            Изменения успешно сохранены!
-                        </Text>
+                        <Text style={styles.message}>Изменения успешно сохранены!</Text>
                     </View>
-                    <TouchableOpacity onPress={onClose} style={[styles.okButton, { backgroundColor: okButtonBackgroundColor }]}>
+                    <TouchableOpacity
+                        onPress={onClose}
+                        style={[styles.okButton, { backgroundColor: okButtonBackgroundColor }]}
+                    >
                         <Text style={styles.okText}>Ок</Text>
                     </TouchableOpacity>
                 </View>
@@ -36,6 +36,7 @@ const CustomAlert: React.FC<CustomAlertProps> = ({ visible, onClose, role = 'def
         </Modal>
     );
 };
+
 
 const styles = StyleSheet.create({
     modalContainer: {
