@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     Modal,
     View,
@@ -7,23 +7,44 @@ import {
     TouchableOpacity,
     StyleSheet,
     Alert,
+    Image,
 } from 'react-native';
-import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../services/firebaseConfig';
-import { Image } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import { doc, updateDoc } from 'firebase/firestore';
+import { db } from '../services/firebaseConfig';
 
-interface AddEventModalProps {
+interface EditTeacherModalProps {
     visible: boolean;
     onClose: () => void;
+    teacher: {
+        id: string;
+        name: string;
+        subject: string;
+        photo: string;
+    };
 }
 
-const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
-    const [title, setTitle] = useState('');
-    const [date, setDate] = useState('');
-    const [time, setTime] = useState('');
-    const [image, setImage] = useState<string>('');
+const teacherImages: { [key: string]: any } = {
+    'teacher1.jpg': require('../../assets/images/teachers/teacher1.png'),
+    'teacher2.jpg': require('../../assets/images/teachers/teacher2.png'),
+    'teacher3.jpg': require('../../assets/images/teachers/teacher3.png'),
+    'teacher4.jpg': require('../../assets/images/teachers/teacher4.png'),
+    'teacher5.jpg': require('../../assets/images/teachers/teacher5.png'),
+};
+
+const EditTeacherModal: React.FC<EditTeacherModalProps> = ({ visible, onClose, teacher }) => {
+    const [name, setName] = useState(teacher.name);
+    const [subject, setSubject] = useState(teacher.subject);
+
+    const [photo, setPhoto] = useState<string>(teacher.photo);
     const [loading, setLoading] = useState(false);
+
+    useEffect(() => {
+        setName(teacher.name);
+        setSubject(teacher.subject);
+        setPhoto(teacher.photo);
+    }, [teacher]);
+
 
     const handlePickPhoto = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -38,40 +59,27 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
             quality: 0.7,
         });
         if (!result.canceled && result.assets && result.assets.length > 0) {
-            setImage(result.assets[0].uri);
+            setPhoto(result.assets[0].uri);
         }
-
     };
 
-
     const handleSave = async () => {
-        if (!title || !date || !time) {
-            Alert.alert('Ошибка', 'Пожалуйста, заполните все поля');
+        if (!name || !subject) {
+            Alert.alert('Ошибка', 'Пожалуйста, заполните имя и предмет');
             return;
         }
         try {
             setLoading(true);
-            // Build event object, omitting image if empty.
-            const newEvent: any = {
-                title,
-                date,
-                time,
-                description: '',
-                location: '',
-            };
-            if (image.trim() !== '') {
-                newEvent.image = image;
-            }
-            await addDoc(collection(db, 'events'), newEvent);
-            Alert.alert('Успех', 'Событие добавлено');
+            const teacherRef = doc(db, 'users', teacher.id);
+            await updateDoc(teacherRef, {
+                name,
+                subject,
+                photo: photo.trim() !== '' ? photo : null,
+            });
+            Alert.alert('Успех', 'Преподаватель обновлен');
             onClose();
-            // Clear the form:
-            setTitle('');
-            setDate('');
-            setTime('');
-            setImage('');
         } catch (error: any) {
-            console.error('Error saving event:', error);
+            console.error('Error updating teacher:', error);
             Alert.alert('Ошибка', error.message);
         } finally {
             setLoading(false);
@@ -82,54 +90,45 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
         <Modal visible={visible} transparent animationType="fade">
             <View style={styles.modalContainer}>
                 <View style={styles.popup}>
-
                     <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                         <Text style={styles.closeText}>×</Text>
                     </TouchableOpacity>
-
                     <View style={styles.formRow}>
-
                         <TouchableOpacity onPress={handlePickPhoto} style={styles.photoPlaceholder}>
-                            {image ? (
-                                <Image source={{ uri: image }} style={styles.photoImage} />
+                            {photo ? (
+                                <Image
+                                    source={
+                                        teacherImages.hasOwnProperty(photo)
+                                            ? teacherImages[photo]
+                                            : { uri: photo }
+                                    }
+                                    style={styles.photoImage}
+                                    onError={() => setPhoto('')}
+                                />
+
                             ) : (
                                 <Text style={styles.photoPlaceholderText}>Выбрать фото</Text>
                             )}
                         </TouchableOpacity>
-
-
-
                         <View style={styles.inputsContainer}>
                             <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Название:</Text>
+                                <Text style={styles.label}>Введите Отображаемое имя:</Text>
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="Название"
+                                    placeholder="Имя"
                                     placeholderTextColor="#888"
-                                    value={title}
-                                    onChangeText={setTitle}
+                                    value={name}
+                                    onChangeText={setName}
                                 />
                             </View>
                             <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Дата:</Text>
+                                <Text style={styles.label}>Введите предмет:</Text>
                                 <TextInput
                                     style={styles.input}
-                                    placeholder="2025-02-10"
+                                    placeholder="Предмет"
                                     placeholderTextColor="#888"
-                                    value={date}
-                                    onChangeText={setDate}
-                                    keyboardType="numbers-and-punctuation"
-                                />
-                            </View>
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Время:</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="14:00"
-                                    placeholderTextColor="#888"
-                                    value={time}
-                                    onChangeText={setTime}
-                                    keyboardType="numbers-and-punctuation"
+                                    value={subject}
+                                    onChangeText={setSubject}
                                 />
                             </View>
                         </View>
@@ -139,13 +138,14 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
                             {loading ? 'Сохранение...' : 'Сохранить'}
                         </Text>
                     </TouchableOpacity>
+
                 </View>
             </View>
         </Modal>
     );
 };
 
-export default AddEventModal;
+export default EditTeacherModal;
 
 const styles = StyleSheet.create({
     modalContainer: {
@@ -180,6 +180,7 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         width: '100%',
         marginVertical: 10,
+        alignItems: 'flex-start',
     },
     photoPlaceholder: {
         width: '40%',
@@ -206,9 +207,10 @@ const styles = StyleSheet.create({
     inputsContainer: {
         flex: 1,
         justifyContent: 'space-between',
+        marginTop: 10,
     },
     inputGroup: {
-        marginBottom: 2,
+        marginBottom: 10,
     },
     label: {
         fontSize: 16,
@@ -216,11 +218,14 @@ const styles = StyleSheet.create({
         color: '#000',
     },
     input: {
+        width: '100%',
         height: 48,
         borderWidth: 1,
-        maxHeight: 35,
-        borderRadius: 15,
+        borderColor: '#CCC',
+        borderRadius: 8,
         paddingHorizontal: 12,
+        marginVertical: 8,
+        fontSize: 16,
     },
     saveButton: {
         width: '70%',
@@ -229,7 +234,6 @@ const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 24,
         borderRadius: 8,
-        maxHeight: 40,
         alignItems: 'center',
     },
     saveButtonText: {
