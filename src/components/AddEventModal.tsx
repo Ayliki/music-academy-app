@@ -10,6 +10,8 @@ import {
 } from 'react-native';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
+import { Image } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
 
 interface AddEventModalProps {
     visible: boolean;
@@ -20,12 +22,27 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
     const [title, setTitle] = useState('');
     const [date, setDate] = useState('');
     const [time, setTime] = useState('');
-    const [image, setImage] = useState<string>(''); // Initialized as empty string
+    const [image, setImage] = useState<string>('');
     const [loading, setLoading] = useState(false);
 
     const handlePickPhoto = async () => {
-        Alert.alert('Функция выбора фото пока не реализована');
+        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (status !== 'granted') {
+            Alert.alert('Ошибка', 'Требуется разрешение для доступа к галерее');
+            return;
+        }
+        const result = await ImagePicker.launchImageLibraryAsync({
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            allowsEditing: true,
+            aspect: [1, 1],
+            quality: 0.7,
+        });
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+            setImage(result.assets[0].uri);
+        }
+
     };
+
 
     const handleSave = async () => {
         if (!title || !date || !time) {
@@ -65,27 +82,30 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
         <Modal visible={visible} transparent animationType="fade">
             <View style={styles.modalContainer}>
                 <View style={styles.popup}>
+
                     <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                         <Text style={styles.closeText}>×</Text>
                     </TouchableOpacity>
 
                     <View style={styles.formRow}>
-                        <TouchableOpacity
-                            onPress={handlePickPhoto}
-                            style={styles.photoPlaceholder}
-                        >
+
+                        <TouchableOpacity onPress={handlePickPhoto} style={styles.photoPlaceholder}>
                             {image ? (
-                                <Text style={styles.photoPlaceholderText}>Фото выбрано</Text>
+                                <Image source={{ uri: image }} style={styles.photoImage} />
                             ) : (
-                                <Text style={styles.photoPlaceholderText}>Добавить фото</Text>
+                                <Text style={styles.photoPlaceholderText}>Выбрать фото</Text>
                             )}
                         </TouchableOpacity>
+
+
+
                         <View style={styles.inputsContainer}>
                             <View style={styles.inputGroup}>
                                 <Text style={styles.label}>Название:</Text>
                                 <TextInput
                                     style={styles.input}
                                     placeholder="Название"
+                                    placeholderTextColor="#888"
                                     value={title}
                                     onChangeText={setTitle}
                                 />
@@ -95,8 +115,10 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
                                 <TextInput
                                     style={styles.input}
                                     placeholder="2025-02-10"
+                                    placeholderTextColor="#888"
                                     value={date}
                                     onChangeText={setDate}
+                                    keyboardType="numbers-and-punctuation"
                                 />
                             </View>
                             <View style={styles.inputGroup}>
@@ -104,8 +126,10 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
                                 <TextInput
                                     style={styles.input}
                                     placeholder="14:00"
+                                    placeholderTextColor="#888"
                                     value={time}
                                     onChangeText={setTime}
+                                    keyboardType="numbers-and-punctuation"
                                 />
                             </View>
                         </View>
@@ -169,8 +193,14 @@ const styles = StyleSheet.create({
     photoPlaceholderText: {
         padding: 4,
         fontSize: 16,
-        fontWeight: 400,
+        fontWeight: '400',
         textAlign: 'center',
+        color: '#000',
+    },
+    photoImage: {
+        width: '100%',
+        height: '100%',
+        borderRadius: 8,
     },
     inputsContainer: {
         flex: 1,
