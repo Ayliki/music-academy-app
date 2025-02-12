@@ -59,7 +59,7 @@ const UsersScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <HeaderMenu title="Пользователи" onBack={() => navigation.navigate('Menu')} />
+            <HeaderMenu title="Пользователи" onBack={() => navigation.navigate('AdminMenu')} />
             <View style={styles.buttonRow}>
                 <TouchableOpacity
                     style={[styles.categoryButton, selectedCategory === 'new' && styles.categoryButtonActive]}
