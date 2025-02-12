@@ -1,40 +1,30 @@
-import React, { useState, useEffect } from 'react';
-import { Modal, View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Image } from 'react-native';
+import React, { useState } from 'react';
+import {
+    Modal,
+    View,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    StyleSheet,
+    Alert,
+    Image,
+} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { doc, updateDoc } from 'firebase/firestore';
+import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
 
-interface EditTeacherModalProps {
+interface AddTeacherModalProps {
     visible: boolean;
     onClose: () => void;
-    teacher: {
-        id: string;
-        name: string;
-        subject: string;
-        photo: string;
-    };
-    onConfirm?: () => void;
 }
 
-const teacherImages: { [key: string]: any } = {
-    'teacher1.jpg': require('../../assets/images/teachers/teacher1.png'),
-    'teacher2.jpg': require('../../assets/images/teachers/teacher2.png'),
-    'teacher3.jpg': require('../../assets/images/teachers/teacher3.png'),
-    'teacher4.jpg': require('../../assets/images/teachers/teacher4.png'),
-    'teacher5.jpg': require('../../assets/images/teachers/teacher5.png'),
-};
-
-const EditTeacherModal: React.FC<EditTeacherModalProps> = ({ visible, onClose, teacher, onConfirm }) => {
-    const [name, setName] = useState(teacher.name);
-    const [subject, setSubject] = useState(teacher.subject);
-    const [photo, setPhoto] = useState<string>(teacher.photo);
+const AddTeacherModal: React.FC<AddTeacherModalProps> = ({ visible, onClose }) => {
+    const [firstName, setFirstName] = useState('');
+    const [lastName, setLastName] = useState('');
+    const [fullName, setFullName] = useState('');
+    const [subject, setSubject] = useState('');
+    const [photo, setPhoto] = useState<string>('');
     const [loading, setLoading] = useState(false);
-
-    useEffect(() => {
-        setName(teacher.name);
-        setSubject(teacher.subject);
-        setPhoto(teacher.photo);
-    }, [teacher]);
 
     const handlePickPhoto = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -54,22 +44,31 @@ const EditTeacherModal: React.FC<EditTeacherModalProps> = ({ visible, onClose, t
     };
 
     const handleSave = async () => {
-        if (!name || !subject) {
+        if (!fullName || !subject) {
             Alert.alert('Ошибка', 'Пожалуйста, заполните имя и предмет');
             return;
         }
+        const nameParts = fullName.trim().split(' ');
+        const firstName = nameParts[0] || '';
+        const lastName = nameParts.slice(1).join(' ');
         try {
             setLoading(true);
-            const teacherRef = doc(db, 'users', teacher.id);
-            await updateDoc(teacherRef, {
-                name,
-                subject,
+            const newTeacher = {
+                firstName,
+                lastName,
+                selection: subject,
                 photo: photo.trim() !== '' ? photo : null,
-            });
+                role: 'teacher',
+            };
+            await addDoc(collection(db, 'users'), newTeacher);
+            Alert.alert('Успех', 'Преподаватель добавлен');
             onClose();
-            onConfirm && onConfirm();
+            setFirstName('');
+            setLastName('');
+            setSubject('');
+            setPhoto('');
         } catch (error: any) {
-            console.error('Error updating teacher:', error);
+            console.error('Error adding teacher:', error);
             Alert.alert('Ошибка', error.message);
         } finally {
             setLoading(false);
@@ -86,15 +85,7 @@ const EditTeacherModal: React.FC<EditTeacherModalProps> = ({ visible, onClose, t
                     <View style={styles.formRow}>
                         <TouchableOpacity onPress={handlePickPhoto} style={styles.photoPlaceholder}>
                             {photo ? (
-                                <Image
-                                    source={
-                                        teacherImages.hasOwnProperty(photo)
-                                            ? teacherImages[photo]
-                                            : { uri: photo }
-                                    }
-                                    style={styles.photoImage}
-                                    onError={() => setPhoto('')}
-                                />
+                                <Image source={{ uri: photo }} style={styles.photoImage} onError={() => setPhoto('')} />
                             ) : (
                                 <Text style={styles.photoPlaceholderText}>Выбрать фото</Text>
                             )}
@@ -106,8 +97,8 @@ const EditTeacherModal: React.FC<EditTeacherModalProps> = ({ visible, onClose, t
                                     style={styles.input}
                                     placeholder="Имя"
                                     placeholderTextColor="#888"
-                                    value={name}
-                                    onChangeText={setName}
+                                    value={fullName}
+                                    onChangeText={setFullName}
                                 />
                             </View>
                             <View style={styles.inputGroup}>
@@ -133,7 +124,7 @@ const EditTeacherModal: React.FC<EditTeacherModalProps> = ({ visible, onClose, t
     );
 };
 
-export default EditTeacherModal;
+export default AddTeacherModal;
 
 const styles = StyleSheet.create({
     modalContainer: {

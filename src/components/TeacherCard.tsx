@@ -26,7 +26,9 @@ const teacherImages: { [key: string]: any } = {
 };
 
 const TeacherCard: React.FC<TeacherCardProps> = ({ teacher, isAdmin = false, onEdit, onDelete }) => {
+    const displayName = teacher.name ? teacher.name.trim() : '';
     const imageSource = teacherImages[teacher.photo] || { uri: teacher.photo };
+    console.log(teacher.name)
 
     return (
         <View style={styles.card}>
@@ -37,15 +39,12 @@ const TeacherCard: React.FC<TeacherCardProps> = ({ teacher, isAdmin = false, onE
             )}
 
             <View style={styles.imageContainer}>
-                <Image
-                    source={teacherImages[teacher.photo]}
-                    style={styles.profileImage}
-                />
+                <Image source={imageSource} style={styles.profileImage} />
             </View>
             <View style={styles.cardContent}>
                 <View style={styles.teacherInfo}>
                     <Text style={styles.label}>Имя: </Text>
-                    <Text style={styles.teacherName}>{teacher.name}</Text>
+                    <Text style={styles.teacherName}>{displayName}</Text>
                 </View>
                 <View style={styles.teacherInfo}>
                     <Text style={styles.label}>Предмет: </Text>

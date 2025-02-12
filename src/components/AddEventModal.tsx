@@ -51,7 +51,6 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
         }
         try {
             setLoading(true);
-            // Build event object, omitting image if empty.
             const newEvent: any = {
                 title,
                 date,
@@ -65,7 +64,6 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
             await addDoc(collection(db, 'events'), newEvent);
             Alert.alert('Успех', 'Событие добавлено');
             onClose();
-            // Clear the form:
             setTitle('');
             setDate('');
             setTime('');

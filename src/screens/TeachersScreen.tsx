@@ -10,6 +10,7 @@ import EditTeacherModal from 'src/components/EditTeacherModal';
 import { deleteDoc, doc } from 'firebase/firestore';
 import { db } from 'src/services/firebaseConfig';
 import CustomAlert from 'src/components/CustomAlert';
+import AddTeacherModal from 'src/components/AddTeacherModal';
 
 const TeachersScreen: React.FC = () => {
     const { teachers } = useTeachers();
@@ -17,6 +18,7 @@ const TeachersScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProps>();
     const [teacherToEdit, setTeacherToEdit] = useState<any>(null);
     const [isConfirmVisible, setIsConfirmVisible] = useState(false);
+    const [isAddTeacherModalVisible, setIsAddTeacherModalVisible] = useState(false);
 
     const handleEditTeacher = (teacher: any) => {
         setTeacherToEdit(teacher);
@@ -61,6 +63,7 @@ const TeachersScreen: React.FC = () => {
                 onEditTeacher={handleEditTeacher}
                 onDeleteTeacher={handleDeleteTeacher}
             />
+
             {teacherToEdit && (
                 <EditTeacherModal
                     visible={true}
@@ -69,6 +72,23 @@ const TeachersScreen: React.FC = () => {
                     onConfirm={handleEditSuccess}
                 />
             )}
+
+            {role === 'administrator' && (
+                <TouchableOpacity
+                    style={styles.addButton}
+                    onPress={() => setIsAddTeacherModalVisible(true)}
+                >
+                    <Text style={styles.addButtonText}>Добавить педагога</Text>
+                </TouchableOpacity>
+            )}
+
+            {role === 'administrator' && isAddTeacherModalVisible && (
+                <AddTeacherModal
+                    visible={isAddTeacherModalVisible}
+                    onClose={() => setIsAddTeacherModalVisible(false)}
+                />
+            )}
+
             {role === 'administrator' && (
                 <CustomAlert
                     visible={isConfirmVisible}
@@ -89,7 +109,7 @@ const styles = StyleSheet.create({
         fontFamily: 'Outfit',
     },
     addButton: {
-        backgroundColor: '#4DD3BA;',
+        backgroundColor: '#4DD3BA',
         paddingVertical: 12,
         paddingHorizontal: 24,
         borderRadius: 8,
