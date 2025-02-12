@@ -6,6 +6,7 @@ import MenuScreen from 'src/screens/MenuScreen';
 import { useAuth } from 'src/context/AuthContext';
 import TeacherStack from './TeacherStack';
 import AdminStack from './AdminStack';
+import UnconfirmedScreen from 'src/screens/UnconfirmedScreen';
 
 const Stack = createStackNavigator();
 
@@ -23,7 +24,7 @@ const UserStack = () => (
 
 
 const AppNavigator: React.FC = () => {
-    const { user, role, loading } = useAuth();
+    const { user, role, loading, confirmed } = useAuth();
 
     if (loading) {
         return <LoadingScreen visible={false} />;
@@ -31,6 +32,10 @@ const AppNavigator: React.FC = () => {
 
     if (!user) {
         return <AuthStack />;
+    }
+
+    if (!confirmed) {
+        return <UnconfirmedScreen />;
     }
 
     if (role === 'administrator') {

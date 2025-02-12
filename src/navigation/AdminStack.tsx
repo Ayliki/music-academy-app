@@ -5,6 +5,7 @@ import ProfileScreen from 'src/screens/ProfileScreen';
 import EventsScreen from 'src/screens/EventsScreen';
 import ScheduleScreen from 'src/screens/ScheduleScreen';
 import TeachersScreen from 'src/screens/TeachersScreen';
+import UsersScreen from 'src/screens/UserScreen';
 
 export type AdminStackParamList = {
     AdminMenu: undefined;
@@ -50,11 +51,11 @@ const AdminStack: React.FC = () => (
             component={TeachersScreen}
             options={{ headerShown: false }}
         />
-        {/* <Stack.Screen
-      name="Users"
-      component={UsersScreen}
-      options={{ headerShown: false }}
-    /> */}
+        <Stack.Screen
+            name="Users"
+            component={UsersScreen}
+            options={{ headerShown: false }}
+        />
     </Stack.Navigator>
 );
 
