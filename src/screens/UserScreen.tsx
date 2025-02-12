@@ -52,8 +52,8 @@ const UsersScreen: React.FC = () => {
     const renderItem = ({ item }: { item: User }) => (
         <UserCard
             user={item}
-            onConfirm={!item.confirmed && item.role === 'admin' ? handleConfirmUser : undefined}
-            onDelete={item.role === 'admin' ? handleDeleteUser : undefined}
+            onConfirm={!item.confirmed ? handleConfirmUser : undefined}
+            onDelete={handleDeleteUser}
         />
     );
 
