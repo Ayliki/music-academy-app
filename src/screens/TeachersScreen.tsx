@@ -24,6 +24,13 @@ const TeachersScreen: React.FC = () => {
         setTeacherToEdit(teacher);
     };
 
+    const handleAddSuccess = () => {
+        setIsAddTeacherModalVisible(false);
+        setTimeout(() => {
+            setIsConfirmVisible(true);
+        }, 300);
+    };
+
     const handleEditSuccess = () => {
         setTeacherToEdit(null);
         setTimeout(() => {
@@ -85,7 +92,7 @@ const TeachersScreen: React.FC = () => {
             {role === 'administrator' && isAddTeacherModalVisible && (
                 <AddTeacherModal
                     visible={isAddTeacherModalVisible}
-                    onClose={() => setIsAddTeacherModalVisible(false)}
+                    onClose={handleAddSuccess}
                 />
             )}
 

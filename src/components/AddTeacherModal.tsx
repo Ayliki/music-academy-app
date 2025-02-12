@@ -63,9 +63,8 @@ const AddTeacherModal: React.FC<AddTeacherModalProps> = ({ visible, onClose }) =
                 role: 'teacher',
             };
             await addDoc(collection(db, 'users'), newTeacher);
-            setIsAlertVisible(true);
-            setFirstName('');
-            setLastName('');
+            onClose();
+            setFullName('')
             setSubject('');
             setPhoto('');
         } catch (error: any) {
