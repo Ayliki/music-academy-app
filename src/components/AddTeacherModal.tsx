@@ -12,6 +12,7 @@ import {
 import * as ImagePicker from 'expo-image-picker';
 import { collection, addDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
+import CustomAlert from './CustomAlert';
 
 interface AddTeacherModalProps {
     visible: boolean;
@@ -25,6 +26,7 @@ const AddTeacherModal: React.FC<AddTeacherModalProps> = ({ visible, onClose }) =
     const [subject, setSubject] = useState('');
     const [photo, setPhoto] = useState<string>('');
     const [loading, setLoading] = useState(false);
+    const [isAlertVisible, setIsAlertVisible] = useState(false);
 
     const handlePickPhoto = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -61,8 +63,7 @@ const AddTeacherModal: React.FC<AddTeacherModalProps> = ({ visible, onClose }) =
                 role: 'teacher',
             };
             await addDoc(collection(db, 'users'), newTeacher);
-            Alert.alert('Успех', 'Преподаватель добавлен');
-            onClose();
+            setIsAlertVisible(true);
             setFirstName('');
             setLastName('');
             setSubject('');
@@ -118,6 +119,9 @@ const AddTeacherModal: React.FC<AddTeacherModalProps> = ({ visible, onClose }) =
                             {loading ? 'Сохранение...' : 'Сохранить'}
                         </Text>
                     </TouchableOpacity>
+                    {isAlertVisible && (
+                        <CustomAlert onClose={() => setIsAlertVisible(false)} visible={isAlertVisible} role="administrator" />
+                    )}
                 </View>
             </View>
         </Modal>

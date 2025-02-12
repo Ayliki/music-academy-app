@@ -90,11 +90,9 @@ const TeachersScreen: React.FC = () => {
             )}
 
             {role === 'administrator' && (
-                <CustomAlert
-                    visible={isConfirmVisible}
-                    onClose={() => setIsConfirmVisible(false)}
-                    role="administrator"
-                />
+                <CustomAlert onClose={() => setIsConfirmVisible(false)} visible={isConfirmVisible} role="administrator">
+                    <Text style={styles.customAlertText}>Преподаватель успешно добавлен!</Text>
+                </CustomAlert>
             )}
         </SafeAreaView>
     );
@@ -120,6 +118,11 @@ const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 18,
         fontWeight: '600',
+    },
+    customAlertText: {
+        fontSize: 16,
+        color: '#666',
+        textAlign: 'center',
     },
 
 });

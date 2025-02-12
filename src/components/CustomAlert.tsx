@@ -5,9 +5,10 @@ interface CustomAlertProps {
     visible: boolean;
     onClose: () => void;
     role?: 'teacher' | 'administrator' | 'default';
+    children?: React.ReactNode;
 }
 
-const CustomAlert: React.FC<CustomAlertProps> = ({ visible, onClose, role = 'default' }) => {
+const CustomAlert: React.FC<CustomAlertProps> = ({ visible, onClose, role = 'default', children }) => {
     const okButtonBackgroundColor =
         role === 'teacher'
             ? '#314FBB'
@@ -23,7 +24,11 @@ const CustomAlert: React.FC<CustomAlertProps> = ({ visible, onClose, role = 'def
                         <Text style={styles.closeText}>×</Text>
                     </TouchableOpacity>
                     <View style={styles.contentContainer}>
-                        <Text style={styles.message}>Изменения успешно сохранены!</Text>
+                        {children ? (
+                            children
+                        ) : (
+                            <Text style={styles.message}>Изменения успешно сохранены!</Text>
+                        )}
                     </View>
                     <TouchableOpacity
                         onPress={onClose}
