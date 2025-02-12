@@ -20,6 +20,17 @@ const TeachersScreen: React.FC = () => {
     const [isConfirmVisible, setIsConfirmVisible] = useState(false);
     const [isAddTeacherModalVisible, setIsAddTeacherModalVisible] = useState(false);
 
+    const onBack = () => {
+        if (role === 'administrator') {
+            navigation.navigate('AdminMenu');
+        } else if (role === 'teacher') {
+            navigation.navigate('TeacherMenu');
+        } else {
+            navigation.navigate('Menu');
+        }
+    };
+
+
     const handleEditTeacher = (teacher: any) => {
         setTeacherToEdit(teacher);
     };
@@ -63,7 +74,7 @@ const TeachersScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <HeaderMenu title={'Преподаватели'} onBack={() => navigation.navigate('Menu')} />
+            <HeaderMenu title="Преподаватели" onBack={onBack} />
             <TeachersList
                 teachers={teachers}
                 isAdmin={role === 'administrator'}
