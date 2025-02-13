@@ -1,15 +1,15 @@
-import React, {useState} from 'react';
-import {SafeAreaView, StyleSheet, ScrollView, TouchableWithoutFeedback, Keyboard} from 'react-native';
+import React, { useState } from 'react';
+import { SafeAreaView, StyleSheet, ScrollView, } from 'react-native';
 import Header from '../components/Header';
-import SignupForm, {SignupFormValues} from '../components/SignupForm';
+import SignupForm, { SignupFormValues } from '../components/SignupForm';
 import SignupVerificationForm from '../components/SignupVerficiationForm';
-import {auth} from '../services/firebaseConfig';
-import {createUserWithEmailAndPassword} from 'firebase/auth';
-import {useNavigation} from '@react-navigation/native';
-import {NativeStackNavigationProp} from '@react-navigation/native-stack';
-import {RootStackParamList} from '../navigation/types';
-import {doc, setDoc} from 'firebase/firestore';
-import {db} from '../services/firebaseConfig';
+import { auth } from '../services/firebaseConfig';
+import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { RootStackParamList } from '../navigation/types';
+import { doc, setDoc } from 'firebase/firestore';
+import { db } from '../services/firebaseConfig';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'SignUp'>;
 
@@ -48,8 +48,8 @@ const SignUpScreen: React.FC = () => {
             // Request a verification code from the backend
             const response = await fetch('https://sendemailcode-xjqcjc5s3a-uc.a.run.app', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({email: values.email}),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: values.email }),
             });
             if (response.ok) {
                 setIsCodeStep(true);
@@ -67,8 +67,8 @@ const SignUpScreen: React.FC = () => {
         try {
             const response = await fetch('https://verifyemailcode-xjqcjc5s3a-uc.a.run.app', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({email: tempEmail, code: codeInput}),
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: tempEmail, code: codeInput }),
             });
             if (response.ok) {
                 const data = await response.json();
@@ -88,24 +88,22 @@ const SignUpScreen: React.FC = () => {
     };
 
     return (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-            <SafeAreaView style={styles.safeArea}>
-                <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-                    <Header/>
+        <SafeAreaView style={styles.safeArea}>
+            <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+                <Header />
 
-                    {isCodeStep ? (
-                        <SignupVerificationForm
-                            code={codeInput}
-                            onChangeCode={setCodeInput}
-                            onGoBack={handleGoBack}
-                            onVerify={handleVerifyCode}
-                        />
-                    ) : (
-                        <SignupForm initialValues={signupData} onSubmit={handleSignUp}/>
-                    )}
-                </ScrollView>
-            </SafeAreaView>
-        </TouchableWithoutFeedback>
+                {isCodeStep ? (
+                    <SignupVerificationForm
+                        code={codeInput}
+                        onChangeCode={setCodeInput}
+                        onGoBack={handleGoBack}
+                        onVerify={handleVerifyCode}
+                    />
+                ) : (
+                    <SignupForm initialValues={signupData} onSubmit={handleSignUp} />
+                )}
+            </ScrollView>
+        </SafeAreaView>
     );
 };
 
