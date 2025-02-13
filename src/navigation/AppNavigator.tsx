@@ -7,12 +7,14 @@ import { useAuth } from 'src/context/AuthContext';
 import TeacherStack from './TeacherStack';
 import AdminStack from './AdminStack';
 import UnconfirmedScreen from 'src/screens/UnconfirmedScreen';
+import SignUpScreen from 'src/screens/SignUpScreen';
 
 const Stack = createStackNavigator();
 
 const AuthStack = () => (
     <Stack.Navigator>
         <Stack.Screen name="Login" component={LoginScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="SignUp" component={SignUpScreen} options={{ headerShown: false }} />
     </Stack.Navigator>
 );
 
