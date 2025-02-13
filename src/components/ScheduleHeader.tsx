@@ -10,6 +10,7 @@ type ScheduleHeaderProps = {
     todayMonth: string;
     todayWeekday: string;
     onTodayPress: () => void;
+    onBack: () => void;
 };
 
 const ScheduleHeader: React.FC<ScheduleHeaderProps> = ({
