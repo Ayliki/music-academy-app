@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Modal, StyleSheet } from 'react-native';
+import {View, Text, TouchableOpacity, Modal, StyleSheet} from 'react-native';
 
 interface ConfirmModalProps {
     visible: boolean;
@@ -9,13 +9,14 @@ interface ConfirmModalProps {
     onConfirm: () => void;
 }
 
-const ConfirmModal: React.FC<ConfirmModalProps> = ({
-    visible,
-    title,
-    message,
-    onClose,
-    onConfirm,
-}) => {
+const ConfirmModal: React.FC<ConfirmModalProps> = (
+    {
+        visible,
+        title,
+        message,
+        onClose,
+        onConfirm,
+    }) => {
     return (
         <Modal visible={visible} transparent animationType="fade">
             <View style={styles.modalOverlay}>
@@ -47,13 +48,15 @@ const styles = StyleSheet.create({
         alignItems: 'center',
     },
     modalContainer: {
-        width: 246,
-        height: 265,
+        width: 260, // Чуть увеличил ширину для удобства
         backgroundColor: 'white',
         borderRadius: 12,
         padding: 16,
         alignItems: 'center',
         position: 'relative',
+        maxWidth: '90%',
+        minHeight: 200,
+        paddingBottom: 16, // Добавил отступ снизу для кнопок
     },
     closeButton: {
         position: 'absolute',
@@ -69,6 +72,7 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         marginBottom: 8,
         marginTop: 16,
+        textAlign: 'center',
     },
     modalText: {
         fontSize: 14,
@@ -80,16 +84,19 @@ const styles = StyleSheet.create({
     modalButtonColumn: {
         flexDirection: 'column',
         alignItems: 'center',
+        alignSelf: 'stretch', // Кнопки займут всю ширину контейнера
+        justifyContent: 'center',
     },
     modalButtonCheck: {
         backgroundColor: '#f0ad4e',
         borderRadius: 4,
-        paddingVertical: 8,
+        paddingVertical: 10,
         paddingHorizontal: 16,
-        width: 118,
+        width: '100%', // Растягивает кнопку по ширине
+        maxWidth: 200, // Чтобы не была слишком широкой
         borderWidth: 1,
         borderColor: '#00A9E3',
-        marginBottom: 16,
+        marginBottom: 12,
     },
     checkBtnText: {
         fontFamily: 'Inter',
@@ -100,9 +107,10 @@ const styles = StyleSheet.create({
     },
     modalButtonSend: {
         borderRadius: 4,
-        paddingVertical: 8,
+        paddingVertical: 10,
         paddingHorizontal: 16,
-        width: 118,
+        width: '100%',
+        maxWidth: 200,
         borderWidth: 1,
         borderColor: '#9D9D9D',
     },
