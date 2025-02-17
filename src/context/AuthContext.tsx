@@ -12,6 +12,8 @@ interface AuthContextType {
     setRole: (role: Role) => void;
     confirmed: boolean | null;
     setConfirmed: (confirmed: boolean) => void;
+    codeVerified: boolean;
+    setCodeVerified: (verified: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -25,6 +27,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [loading, setLoading] = useState(true);
     const [role, setRole] = useState<Role>(null);
     const [confirmed, setConfirmed] = useState<boolean | null>(null);
+    const [codeVerified, setCodeVerified] = useState<boolean>(false);
 
     useEffect(() => {
         let unsubscribe: Unsubscribe | undefined;
@@ -39,15 +42,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
                         console.log('Fetched role:', data.role);
                         setRole(data.role || 'default');
                         setConfirmed(data.confirmed ?? false);
+                        setCodeVerified(data.codeVerified ?? false);
                     } else {
                         setRole('default');
                         setConfirmed(false);
+                        setCodeVerified(false);
                         console.log('No user document found. Default role set.');
                     }
                 });
             } else {
                 setRole(null);
                 setConfirmed(null);
+                setCodeVerified(false);
             }
 
             setLoading(false);
@@ -60,7 +66,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, loading, role, setRole, confirmed, setConfirmed }}>
+        <AuthContext.Provider value={{ user, loading, role, setRole, confirmed, setConfirmed, codeVerified, setCodeVerified }}>
             {children}
         </AuthContext.Provider>
     );

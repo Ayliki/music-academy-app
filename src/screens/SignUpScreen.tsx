@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { SafeAreaView, StyleSheet, ScrollView, } from 'react-native';
 import Header from '../components/Header';
 import SignupForm, { SignupFormValues } from '../components/SignupForm';
@@ -8,8 +8,9 @@ import { createUserWithEmailAndPassword } from 'firebase/auth';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
-import { doc, setDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
+import { useAuth } from 'src/context/AuthContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'SignUp'>;
 
@@ -28,6 +29,8 @@ const SignUpScreen: React.FC = () => {
 
     const navigation = useNavigation<NavigationProp>();
 
+    const { codeVerified } = useAuth();
+
     // Step 1: Handle Sign-Up Process
     const handleSignUp = async (values: SignupFormValues) => {
         try {
@@ -44,6 +47,7 @@ const SignUpScreen: React.FC = () => {
                 email: values.email,
                 selection: values.selection,
                 confirmed: false,
+                codeVerified: false,
                 role: 'default',
             });
 
@@ -75,7 +79,9 @@ const SignUpScreen: React.FC = () => {
             if (response.ok) {
                 const data = await response.json();
                 console.log('Code verified successfully', data);
-                navigation.navigate('Menu');
+                await updateDoc(doc(db, 'users', tempEmail.toLowerCase()), {
+                    codeVerified: true,
+                });
             } else {
                 const errorData = await response.json();
                 console.error('Verification error:', errorData.error);

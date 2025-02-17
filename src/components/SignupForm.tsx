@@ -34,7 +34,6 @@ interface SignupFormProps {
 
 const SignupForm: React.FC<SignupFormProps> = ({ initialValues, onSubmit }) => {
     const navigation = useNavigation<NavigationProps>();
-    // To toggle labels for teacher vs. parent
     const [isTeacher, setIsTeacher] = useState(false);
 
     return (
