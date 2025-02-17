@@ -57,7 +57,7 @@ const AdminApplicationsScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <HeaderMenu title="Заявки" onBack={() => navigation.navigate('Menu')} />
+            <HeaderMenu title="Заявки" onBack={() => navigation.navigate('AdminMenu')} />
             <View style={styles.buttonRow}>
                 <TouchableOpacity
                     style={[
