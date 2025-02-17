@@ -81,23 +81,12 @@ const ScheduleScreen: React.FC = () => {
         }
     };
 
-    const handleBack = () => {
-        if (role === 'administrator') {
-            navigation.navigate('AdminMenu');
-        } else if (role === 'teacher') {
-            navigation.navigate('TeacherMenu');
-        } else {
-            navigation.navigate('Menu');
-        }
-    };
-
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScheduleHeader
                 todayNum={todayNum}
                 todayMonth={todayMonth}
                 todayWeekday={todayWeekday}
-                onBack={handleBack}
                 onTodayPress={() => setSelectedDay(defaultSelected)}
             />
             <ScheduleDatePicker

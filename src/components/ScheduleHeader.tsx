@@ -10,7 +10,6 @@ type ScheduleHeaderProps = {
     todayMonth: string;
     todayWeekday: string;
     onTodayPress: () => void;
-    onBack: () => void;
 };
 
 const ScheduleHeader: React.FC<ScheduleHeaderProps> = ({
@@ -23,6 +22,9 @@ const ScheduleHeader: React.FC<ScheduleHeaderProps> = ({
     const { role } = useAuth();
 
     const handleBack = () => {
+        if (role === 'administrator') {
+            navigation.navigate('AdminMenu')
+        }
         if (role === "teacher") {
             navigation.navigate("TeacherMenu");
         } else {
