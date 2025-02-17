@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { SafeAreaView, StyleSheet, ScrollView, } from 'react-native';
 import Header from '../components/Header';
 import SignupForm, { SignupFormValues } from '../components/SignupForm';
