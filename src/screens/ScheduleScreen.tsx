@@ -9,6 +9,7 @@ import ScheduleHeader from '../components/ScheduleHeader';
 import ScheduleDatePicker from '../components/ScheduleDatePicker';
 import ScheduleTable, { Lesson } from '../components/ScheduleTable';
 import { db } from '../services/firebaseConfig';
+import { useAuth } from 'src/context/AuthContext';
 
 const generateDateOptions = (baseDate: Date): string[] => {
     const options: string[] = [];
@@ -32,6 +33,7 @@ const generateDateOptions = (baseDate: Date): string[] => {
 const ScheduleScreen: React.FC = () => {
     const { lessons, setLessons } = useLessons();
     const navigation = useNavigation<NavigationProps>();
+    const { role } = useAuth();
 
     const today = new Date();
     const todayNum = today.getDate();
@@ -80,7 +82,13 @@ const ScheduleScreen: React.FC = () => {
     };
 
     const handleBack = () => {
-        navigation.navigate('Menu');
+        if (role === 'administrator') {
+            navigation.navigate('AdminMenu');
+        } else if (role === 'teacher') {
+            navigation.navigate('TeacherMenu');
+        } else {
+            navigation.navigate('Menu');
+        }
     };
 
     return (
