@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot } from 'firebase/firestore';
 import { auth, db } from '../services/firebaseConfig';
 import { UserProfile } from '../services/userService';
 
@@ -33,11 +33,10 @@ export const useUserData = (): UseUserDataReturn => {
                     middleName: data.middleName || '',
                     phone: data.phone || '',
                     email: currentUser.email,
-                    profilePicture: data.profilePicture,
-                    role: data.role,
+                    profilePicture: data.profilePicture ?? undefined,
+                    role: data.role || 'default',
                 });
             } else {
-                // Set default values if no document exists
                 setUserData({
                     lastName: '',
                     firstName: '',
@@ -55,7 +54,6 @@ export const useUserData = (): UseUserDataReturn => {
         }
     };
 
-    // Fetch the data on mount
     useEffect(() => {
         fetchUserData();
     }, [currentUser]);

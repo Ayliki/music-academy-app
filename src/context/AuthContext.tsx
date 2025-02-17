@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { auth, db } from '../services/firebaseConfig';
 import { onAuthStateChanged, User as FirebaseAuthUser } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { doc, getDoc, onSnapshot, Unsubscribe } from 'firebase/firestore';
 
 type Role = 'default' | 'teacher' | 'administrator' | null;
 
@@ -27,28 +27,24 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const [confirmed, setConfirmed] = useState<boolean | null>(null);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (authenticatedUser) => {
+        let unsubscribe: Unsubscribe | undefined;
+        const unsubscribeAuth = onAuthStateChanged(auth, (authenticatedUser) => {
             setUser(authenticatedUser);
 
             if (authenticatedUser) {
-                try {
-                    const userDocRef = doc(db, 'users', authenticatedUser.email?.toLowerCase() || '');
-                    const docSnap = await getDoc(userDocRef);
+                const userDocRef = doc(db, 'users', authenticatedUser.email?.toLowerCase() || '');
+                unsubscribe = onSnapshot(userDocRef, (docSnap) => {
                     if (docSnap.exists()) {
                         const data = docSnap.data();
                         console.log('Fetched role:', data.role);
-                        setRole(data.role ?? 'default');
+                        setRole(data.role || 'default');
                         setConfirmed(data.confirmed ?? false);
                     } else {
                         setRole('default');
                         setConfirmed(false);
                         console.log('No user document found. Default role set.');
                     }
-                } catch (error) {
-                    console.error('Error fetching user role:', error);
-                    setRole('default');
-                    setConfirmed(false);
-                }
+                });
             } else {
                 setRole(null);
                 setConfirmed(null);
@@ -57,7 +53,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             setLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribeAuth();
+            if (unsubscribe) unsubscribe();
+        };
     }, []);
 
     return (

@@ -1,11 +1,11 @@
 import React from 'react';
-import {SafeAreaView, StyleSheet, TouchableWithoutFeedback, Keyboard} from 'react-native';
+import { SafeAreaView, StyleSheet, TouchableWithoutFeedback, Keyboard } from 'react-native';
 import Header from '../components/Header';
 import LoginForm from '../components/LoginForm';
 import CodeVerificationForm from '../components/CodeVerificationForm';
-import {useAuth} from '../hooks/useAuth';
-import {useNavigation} from '@react-navigation/native';
-import {NavigationProps} from '../navigation/types';
+import { useAuth } from '../hooks/useAuth';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationProps } from '../navigation/types';
 
 const LoginScreen: React.FC = () => {
     const {
@@ -23,16 +23,16 @@ const LoginScreen: React.FC = () => {
     return (
         <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
             <SafeAreaView style={styles.safeArea}>
-                <Header/>
+                <Header />
                 {isCodeStep ? (
                     <CodeVerificationForm
                         code={codeInput}
                         onChangeCode={setCodeInput}
                         onGoBack={resetAuth}
-                        onVerify={() => login(() => navigation.navigate('Menu'))}
+                        onVerify={() => login(() => { })}
                     />
                 ) : (
-                    <LoginForm onSendCode={sendLoginCode} isLoading={isLoading}/>
+                    <LoginForm onSendCode={sendLoginCode} isLoading={isLoading} />
                 )}
             </SafeAreaView>
         </TouchableWithoutFeedback>

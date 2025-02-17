@@ -8,6 +8,7 @@ import TeacherStack from './TeacherStack';
 import AdminStack from './AdminStack';
 import UnconfirmedScreen from 'src/screens/UnconfirmedScreen';
 import SignUpScreen from 'src/screens/SignUpScreen';
+import DefaultStack from './DefaultStack';
 
 const Stack = createStackNavigator();
 
@@ -45,7 +46,7 @@ const AppNavigator: React.FC = () => {
     } else if (role === 'teacher') {
         return <TeacherStack />;
     } else {
-        return <UserStack />;
+        return <DefaultStack />;
     }
 };
 

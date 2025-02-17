@@ -43,6 +43,8 @@ const SignUpScreen: React.FC = () => {
                 phone: values.phone,
                 email: values.email,
                 selection: values.selection,
+                confirmed: false,
+                role: 'default',
             });
 
             // Request a verification code from the backend

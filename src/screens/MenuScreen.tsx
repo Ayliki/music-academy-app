@@ -48,6 +48,8 @@ const MenuScreen: React.FC = () => {
 
     const fullName = `${userData.lastName} ${userData.firstName}`;
 
+    const canGoBack = navigation.canGoBack();
+
     const menuItems: MenuItemData[] = [
         { label: 'Профиль', screen: 'Profile', icon: 'person' },
         { label: 'События', screen: 'Events', icon: 'calendar' },
