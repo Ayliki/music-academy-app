@@ -46,9 +46,20 @@ const EventsScreen: React.FC = () => {
         }
     };
 
+    const handleBack = () => {
+        if (role === 'administrator') {
+            navigation.navigate('AdminMenu')
+        }
+        if (role === "teacher") {
+            navigation.navigate("TeacherMenu");
+        } else {
+            navigation.navigate("Menu");
+        }
+    };
+
     return (
         <SafeAreaView style={styles.safeArea}>
-            <HeaderMenu title="События" onBack={() => navigation.navigate('AdminMenu')} />
+            <HeaderMenu title="События" onBack={handleBack} />
             <ScrollView contentContainerStyle={styles.eventsList}>
                 {events.map((event) => (
                     <View key={event.id} style={styles.eventContainer}>

@@ -103,6 +103,7 @@ const styles = StyleSheet.create({
         marginVertical: 10,
     },
     categoryButton: {
+        minWidth: 140,
         paddingVertical: 8,
         paddingHorizontal: 16,
         borderWidth: 1,
@@ -115,6 +116,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#3176BB',
     },
     buttonText: {
+        textAlign: 'center',
         fontSize: 16,
         color: '#ffff',
     },

@@ -129,6 +129,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#3192BB',
         borderRadius: 8,
         marginHorizontal: 5,
+        minWidth: 120,
     },
     categoryButtonActive: {
         backgroundColor: '#3176BB',
@@ -136,6 +137,7 @@ const styles = StyleSheet.create({
     buttonText: {
         fontSize: 16,
         color: '#fff',
+        textAlign: 'center',
     },
     buttonTextActive: {
         color: '#fff',
