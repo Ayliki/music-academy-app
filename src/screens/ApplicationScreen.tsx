@@ -6,14 +6,19 @@ import {
     TextInput,
     StyleSheet,
     ScrollView,
+    Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import HeaderMenu from '../components/HeaderMenu';
 import MultiSelectDropdown from '../components/MultiSelectDropdown';
 import CustomAlert from '../components/CustomAlert';
+import { addDoc, collection } from 'firebase/firestore';
+import { db } from 'src/services/firebaseConfig';
+import { useUserData } from 'src/hooks/useUserData';
 
 const ApplicationScreen: React.FC = () => {
     const navigation = useNavigation();
+    const { userData } = useUserData();
 
     const [alertVisible, setAlertVisible] = useState(false);
 
@@ -33,11 +38,23 @@ const ApplicationScreen: React.FC = () => {
     const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
     const teachers = ['Юля', 'Камила', 'Карина', 'Мария', 'Не важно'];
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         try {
+            const fullName = userData ? `${userData.firstName} ${userData.lastName}` : 'Неизвестный пользователь';
+            await addDoc(collection(db, 'applications'), {
+                name: fullName,
+                days: selectedDays,
+                startTime,
+                endTime,
+                subject: selectedSubjects,
+                teacher: selectedTeachers,
+                confirmed: false,
+                createdAt: new Date(),
+            });
             setAlertVisible(true);
-        } catch (error) {
-            console.error('Error saving profile:', error);
+        } catch (error: any) {
+            console.error('Error saving application:', error);
+            Alert.alert('Ошибка', error.message);
         }
     };
 

@@ -22,49 +22,63 @@ interface ApplicationCardProps {
 const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, onConfirm, onDelete }) => {
     return (
         <View style={styles.card}>
-
-            <View style={styles.leftContainer}>
-
+            {/* Top Right: Accept Button */}
+            <View style={styles.topRightContainer}>
                 {!application.confirmed && onConfirm && (
-                    <TouchableOpacity
-                        style={styles.actionButton}
-                        onPress={() => onConfirm(application)}
-                    >
+                    <TouchableOpacity style={styles.confirmButton} onPress={() => onConfirm(application)}>
+                        <Text style={styles.actionText}>Принять</Text>
                         <Ionicons name="checkmark-circle" size={24} color="black" />
-                        <Text style={styles.buttonText}>Принять</Text>
-                    </TouchableOpacity>
-                )}
-                {onDelete && (
-                    <TouchableOpacity
-                        style={[styles.actionButton, { marginTop: 8 }]}
-                        onPress={() => onDelete(application)}
-                    >
-                        <Ionicons name="trash-outline" size={24} color="black" />
-                        <Text style={styles.buttonText}>Удалить</Text>
                     </TouchableOpacity>
                 )}
             </View>
 
+            {/* Content */}
+            <View style={styles.contentContainer}>
+                <View style={styles.details}>
+                    <View style={styles.textContainer}>
+                        <Text style={styles.name}>{application.name}</Text>
+                    </View>
+                    <View style={styles.textContainer}>
+                        <Text style={styles.label}>Дни недели:</Text>
+                        <Text style={styles.value}>
+                            {(application.days || [])
+                                .map(day => {
+                                    const mapping: { [key: string]: string } = {
+                                        'Понедельник': 'Пн',
+                                        'Вторник': 'Вт',
+                                        'Среда': 'Ср',
+                                        'Четверг': 'Чт',
+                                        'Пятница': 'Пт',
+                                        'Суббота': 'Сб',
+                                        'Воскресенье': 'Вс',
+                                    };
+                                    return mapping[day] || day;
+                                })
+                                .join(', ')}
+                        </Text>
 
-            <View style={styles.infoContainer}>
-                <Text style={styles.name}>{application.name}</Text>
-                <Text style={styles.info}>
-                    <Text style={styles.label}>Дни недели: </Text>
-                    {(application.days && application.days.join(', ')) || 'N/A'}
-                </Text>
-                <Text style={styles.info}>
-                    <Text style={styles.label}>Время: </Text>
-                    {`с ${application.startTime || 'N/A'} до ${application.endTime || 'N/A'}`}
-                </Text>
-                <Text style={styles.info}>
-                    <Text style={styles.label}>Предмет: </Text>
-                    {application.subject || 'N/A'}
-                </Text>
-                <Text style={styles.info}>
-                    <Text style={styles.label}>Педагог: </Text>
-                    {application.teacher || 'N/A'}
-                </Text>
+                    </View>
+                    <View style={styles.textContainer}>
+                        <Text style={styles.label}>Время:</Text>
+                        <Text style={styles.value}>{`с ${application.startTime} до ${application.endTime}`}</Text>
+                    </View>
+                    <View style={styles.textContainer}>
+                        <Text style={styles.label}>Предмет:</Text>
+                        <Text style={styles.value}>{application.subject}</Text>
+                    </View>
+                    <View style={styles.textContainer}>
+                        <Text style={styles.label}>Педагог:</Text>
+                        <Text style={styles.value}>{application.teacher}</Text>
+                    </View>
+                </View>
             </View>
+
+            {/*Delete Button */}
+            {onDelete && (
+                <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(application)}>
+                    <Ionicons name="trash-outline" size={24} color="black" />
+                </TouchableOpacity>
+            )}
         </View>
     );
 };
@@ -75,42 +89,67 @@ const styles = StyleSheet.create({
     card: {
         width: '90%',
         alignSelf: 'center',
-        flexDirection: 'row',
-        borderWidth: 1,
-        borderColor: '#CCC',
+        backgroundColor: '#F4F4F4',
         borderRadius: 10,
         padding: 16,
         marginVertical: 8,
-        backgroundColor: '#F4F4F4',
+        borderWidth: 1,
+        borderColor: '#CCC',
+        shadowColor: '#000',
+        shadowOpacity: 0.1,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 3,
+        position: 'relative',
     },
-    leftContainer: {
-        justifyContent: 'flex-start',
-        marginRight: 16,
+    topRightContainer: {
+        position: 'absolute',
+        top: 10,
+        right: 10,
+        zIndex: 1,
     },
-    actionButton: {
+    confirmButton: {
         flexDirection: 'row',
         alignItems: 'center',
-
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
     },
-    buttonText: {
-        marginLeft: 6,
+    actionText: {
+        fontWeight: 600,
         fontSize: 16,
     },
-    infoContainer: {
-        flex: 1,
+    contentContainer: {
+        marginTop: 10,
     },
-    name: {
-        fontSize: 20,
-        fontWeight: '600',
+    details: {
+        flexDirection: 'column',
+    },
+    textContainer: {
         marginBottom: 8,
     },
     label: {
+        fontSize: 16,
         fontWeight: '400',
-        fontSize: 16,
     },
-    info: {
-        fontSize: 16,
+    name: {
+        fontSize: 18,
         fontWeight: '600',
-        marginBottom: 4,
+    },
+    value: {
+        fontSize: 17,
+        fontWeight: '600',
+        marginTop: 4,
+    },
+    deleteButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 8,
+        position: 'absolute',
+        bottom: 10,
+        right: 10,
     },
 });
+
+

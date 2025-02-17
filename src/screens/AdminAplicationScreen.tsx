@@ -3,7 +3,7 @@ import { SafeAreaView, StyleSheet, TouchableOpacity, Text, FlatList, View, Alert
 import HeaderMenu from 'src/components/HeaderMenu';
 import { useNavigation } from '@react-navigation/native';
 import { NavigationProps } from 'src/navigation/types';
-import { collection, onSnapshot, updateDoc, doc, deleteDoc } from 'firebase/firestore';
+import { collection, onSnapshot, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
 import { db } from 'src/services/firebaseConfig';
 import ApplicationCard, { Application } from 'src/components/ApplicationCard';
 
@@ -30,6 +30,17 @@ const AdminApplicationsScreen: React.FC = () => {
     const handleConfirmApplication = async (application: Application) => {
         try {
             await updateDoc(doc(db, 'applications', application.id), { confirmed: true });
+            const lessonData = {
+                dayLabel: application.days ? application.days[0] : '',
+                lesson: application.subject,
+                confirmed: true,
+                teacher: application.teacher,
+                startTime: application.startTime,
+                endTime: application.endTime,
+                createdAt: new Date(),
+            };
+            await addDoc(collection(db, 'lessons'), lessonData);
+
             Alert.alert('Успех', 'Заявка подтверждена');
         } catch (error: any) {
             console.error('Error confirming application:', error);
@@ -99,6 +110,11 @@ const styles = StyleSheet.create({
     container: {
         flex: 1,
         backgroundColor: '#fff',
+        justifyContent: 'center',
+    },
+    listContentContainer: {
+        width: '100%',
+        paddingHorizontal: 10,
     },
     buttonRow: {
         flexDirection: 'row',
@@ -121,9 +137,8 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#fff',
     },
-    listContentContainer: {
-        flexGrow: 1,
-        paddingHorizontal: 10,
+    buttonTextActive: {
+        color: '#fff',
     },
     emptyText: {
         textAlign: 'center',
@@ -131,4 +146,5 @@ const styles = StyleSheet.create({
         fontSize: 16,
         color: '#666',
     },
+
 });
