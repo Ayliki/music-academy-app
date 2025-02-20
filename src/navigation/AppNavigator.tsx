@@ -11,7 +11,7 @@ import SignUpScreen from 'src/screens/SignUpScreen';
 import DefaultStack from './DefaultStack';
 import { NavigationProps } from './types';
 import { useNavigation } from '@react-navigation/native';
-import RegistrationStack from './RegistrationStacl';
+import RegistrationStack from './RegistrationStack';
 
 const Stack = createStackNavigator();
 
@@ -40,7 +40,7 @@ const AppNavigator: React.FC = () => {
         return <RegistrationStack />;
     }
 
-    if (!confirmed) {
+    if (user && !confirmed) {
         return <UnconfirmedScreen />;
     }
 
