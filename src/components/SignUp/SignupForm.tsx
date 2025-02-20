@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     View,
     Text,
@@ -8,16 +8,16 @@ import {
     Platform,
     ScrollView
 } from 'react-native';
-import {Formik} from 'formik';
-import {useNavigation} from '@react-navigation/native';
-import {NavigationProps} from '../../navigation/types';
+import { Formik } from 'formik';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationProps } from '../../navigation/types';
 import SingleSelectDropdown from '../SingleSelectDropdown';
-import {db} from '../../services/firebaseConfig';
-import {collection, getDocs} from 'firebase/firestore';
-import {SelectableItem} from "../../types/SelectableItem";
+import { db } from '../../services/firebaseConfig';
+import { collection, getDocs } from 'firebase/firestore';
+import { SelectableItem } from "../../types/SelectableItem";
 import styles from "../../styles/SignUpStyles"
 import SignupFormValues from "./SignUpFormValues";
-import {SignUpSchema} from "./SignUpSchema";
+import { SignUpSchema } from "./SignUpSchema";
 import SubmitButton from "./SubmitButton";
 
 
@@ -26,7 +26,7 @@ interface SignupFormProps {
     onSubmit: (values: SignupFormValues) => void;
 }
 
-const SignupForm: React.FC<SignupFormProps> = ({initialValues, onSubmit}) => {
+const SignupForm: React.FC<SignupFormProps> = ({ initialValues, onSubmit }) => {
     const navigation = useNavigation<NavigationProps>();
     const [isTeacher, setIsTeacher] = useState(false);
     const [subjects, setSubjects] = useState<SelectableItem[]>([]);
@@ -41,11 +41,11 @@ const SignupForm: React.FC<SignupFormProps> = ({initialValues, onSubmit}) => {
                 const groupsSnapshot = await getDocs(collection(db, 'groups'));
 
                 const subjectsData = subjectsSnapshot.docs
-                    .map(doc => ({id: doc.id, name: doc.data().name}))
+                    .map(doc => ({ id: doc.id, name: doc.data().name }))
                     .sort((a, b) => a.name.localeCompare(b.name));
 
                 const groupsData = groupsSnapshot.docs
-                    .map(doc => ({id: doc.id, name: doc.data().name}))
+                    .map(doc => ({ id: doc.id, name: doc.data().name }))
                     .sort((a, b) => a.name.localeCompare(b.name));
 
                 setSubjects(subjectsData);
@@ -61,7 +61,7 @@ const SignupForm: React.FC<SignupFormProps> = ({initialValues, onSubmit}) => {
     }, []);
 
     return (
-        <KeyboardAvoidingView style={{flex: 1}} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
             <ScrollView contentContainerStyle={styles.formContainer} keyboardShouldPersistTaps="handled">
                 <Text style={styles.title}>Регистрация</Text>
                 <Text style={styles.subtitle}>Пожалуйста, заполните необходимые данные!</Text>
@@ -71,7 +71,7 @@ const SignupForm: React.FC<SignupFormProps> = ({initialValues, onSubmit}) => {
                     validationSchema={SignUpSchema}
                     onSubmit={onSubmit}
                 >
-                    {({handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue}) => (
+                    {({ handleChange, handleBlur, handleSubmit, values, errors, touched, setFieldValue }) => (
                         <View>
                             {/* Фамилия */}
                             <Text style={styles.label}>{isTeacher ? 'Фамилия' : 'Фамилия ребенка'}</Text>
@@ -145,17 +145,22 @@ const SignupForm: React.FC<SignupFormProps> = ({initialValues, onSubmit}) => {
                                 placeholder={loading ? 'Загрузка...' : isTeacher ? 'Выберите предмет' : 'Выберите группу'}
                             />
 
-                            <SubmitButton onPress={handleSubmit as any} title="Отправить код"/>
+                            <SubmitButton onPress={handleSubmit as any} title="Отправить код" />
 
                             <TouchableOpacity style={styles.loginLinkContainer}
-                                              onPress={() => navigation.navigate('Login')}>
+                                onPress={() => navigation.navigate('Login')}>
                                 <Text style={styles.loginLink}>Уже есть аккаунт? <Text
                                     style={styles.loginText}>Войти</Text></Text>
                             </TouchableOpacity>
 
                             {!isTeacher && (
-                                <TouchableOpacity onPress={() => setIsTeacher(true)}>
-                                    <Text style={[styles.link, {marginTop: 10}]}>Я педагог!</Text>
+                                <TouchableOpacity
+                                    onPress={() => {
+                                        setIsTeacher(true);
+                                        setFieldValue('isTeacher', true);
+                                    }}
+                                >
+                                    <Text style={[styles.link, { marginTop: 10 }]}>Я педагог!</Text>
                                 </TouchableOpacity>
                             )}
                         </View>

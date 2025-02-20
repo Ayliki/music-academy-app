@@ -6,4 +6,5 @@ export default interface SignupFormValues {
     email: string;
     subjectId?: string;
     groupId?: string;
+    isTeacher: boolean;
 }

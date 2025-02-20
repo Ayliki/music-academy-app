@@ -12,6 +12,7 @@ import { RootStackParamList } from '../navigation/types';
 import { doc, setDoc, updateDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
 import { useAuth } from 'src/context/AuthContext';
+import LoadingScreen from 'src/components/LoadingOverlay';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'SignUp'>;
 
@@ -27,7 +28,9 @@ const SignUpScreen: React.FC = () => {
         email: '',
         groupId: '',
         subjectId: '',
+        isTeacher: false,
     });
+    const [isLoading, setIsLoading] = useState(false);
 
     const navigation = useNavigation<NavigationProp>();
 
@@ -35,6 +38,7 @@ const SignUpScreen: React.FC = () => {
 
     // Step 1: Handle Sign-Up Process
     const handleSignUp = async (values: SignUpFormValues) => {
+        setIsLoading(true);
         try {
             setSignupData(values);
 
@@ -51,29 +55,38 @@ const SignUpScreen: React.FC = () => {
                 subjectId: values.subjectId,
                 confirmed: false,
                 codeVerified: false,
-                role: 'default',
+                role: values.isTeacher ? 'teacher' : 'default',
             });
 
             // Request a verification code from the backend
-            const response = await fetch('https://sendemailcode-xjqcjc5s3a-uc.a.run.app', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: values.email }),
-            });
-            if (response.ok) {
-                setIsCodeStep(true);
-            } else {
-                const errorData = await response.json();
-                console.error('Error sending code:', errorData.error);
+            setIsCodeStep(true);
+            try {
+                const response = await fetch('https://sendemailcode-xjqcjc5s3a-uc.a.run.app', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email: values.email }),
+                });
+                if (!response.ok) {
+                    setIsCodeStep(false);
+                    const errorData = await response.json();
+                    console.error('Error sending code:', errorData.error);
+                }
+            } catch (error: any) {
+                setIsCodeStep(false);
+                console.error('Error sending code:', error.message);
             }
+
         } catch (error: any) {
             console.error('SignUp Error:', error);
             Alert.alert('Ошибка при регистрации', error.message);
+        } finally {
+            setIsLoading(false);
         }
     };
 
     // Step 2: Handle Code Verification
     const handleVerifyCode = async () => {
+        setIsLoading(true);
         try {
             const response = await fetch('https://verifyemailcode-xjqcjc5s3a-uc.a.run.app', {
                 method: 'POST',
@@ -92,6 +105,8 @@ const SignUpScreen: React.FC = () => {
             }
         } catch (error: any) {
             console.error('Verification error:', error.message);
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -101,6 +116,7 @@ const SignUpScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.safeArea}>
+            <LoadingScreen visible={isLoading} />
             <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
                 <Header />
 
