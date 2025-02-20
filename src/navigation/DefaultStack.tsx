@@ -5,7 +5,7 @@ import ProfileScreen from 'src/screens/ProfileScreen';
 import EventsScreen from 'src/screens/EventsScreen';
 import ScheduleScreen from 'src/screens/ScheduleScreen';
 import ApplicationScreen from 'src/screens/ApplicationScreen';
-import TeachersScreen from 'src/screens/TeachersScreen';
+import TeachersScreen from '../screens/teachers/TeachersScreen';
 
 export type DefaultStackParamList = {
     Menu: undefined;

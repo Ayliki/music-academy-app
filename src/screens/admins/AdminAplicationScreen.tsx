@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { SafeAreaView, StyleSheet, TouchableOpacity, Text, FlatList, View, Alert } from 'react-native';
-import HeaderMenu from 'src/components/HeaderMenu';
+import HeaderMenu from '../../components/HeaderMenu';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationProps } from 'src/navigation/types';
+import { NavigationProps } from '../../navigation/types';
 import { collection, onSnapshot, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
-import { db } from 'src/services/firebaseConfig';
-import ApplicationCard, { Application } from 'src/components/ApplicationCard';
+import { db } from '../../services/firebaseConfig';
+import ApplicationCard, { Application } from '../../components/ApplicationCard';
 
 const AdminApplicationsScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProps>();

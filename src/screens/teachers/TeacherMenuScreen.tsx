@@ -2,14 +2,14 @@ import React from 'react';
 import { SafeAreaView, View, StyleSheet, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationProps } from '../navigation/types';
-import HeaderMenu from '../components/HeaderMenu';
-import MenuItem from '../components/MenuItem';
-import { useUserData } from 'src/hooks/useUserData';
-import LoadingOverlay from 'src/components/LoadingOverlay';
-import ProfileSummary from 'src/components/ProfileSummary';
+import { NavigationProps } from '../../navigation/types';
+import HeaderMenu from '../../components/HeaderMenu';
+import MenuItem from '../../components/MenuItem';
+import { useUserData } from '../../hooks/useUserData';
+import LoadingOverlay from '../../components/LoadingOverlay';
+import ProfileSummary from '../../components/ProfileSummary';
 import { signOut } from 'firebase/auth';
-import { auth } from 'src/services/firebaseConfig';
+import { auth } from '../../services/firebaseConfig';
 
 interface TeacherMenuItemData {
     label: string;

@@ -1,6 +1,6 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import TeacherMenuScreen from 'src/screens/TeacherMenuScreen';
+import TeacherMenuScreen from '../screens/teachers/TeacherMenuScreen';
 import ProfileScreen from '../screens/ProfileScreen';
 import EventsScreen from '../screens/EventsScreen';
 import ScheduleScreen from 'src/screens/ScheduleScreen';

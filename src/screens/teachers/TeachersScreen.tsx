@@ -1,16 +1,16 @@
 import React, { useState } from 'react';
 import { SafeAreaView, StyleSheet, TouchableOpacity, Text, Alert } from 'react-native';
-import TeachersList from 'src/components/TeacherList';
-import { useTeachers } from '../hooks/useTeachers';
+import TeachersList from '../../components/TeacherList';
+import { useTeachers } from '../../hooks/useTeachers';
 import { useNavigation } from '@react-navigation/native';
-import { NavigationProps } from 'src/navigation/types';
-import HeaderMenu from 'src/components/HeaderMenu';
-import { useAuth } from 'src/context/AuthContext';
-import EditTeacherModal from 'src/components/EditTeacherModal';
+import { NavigationProps } from '../../navigation/types';
+import HeaderMenu from '../../components/HeaderMenu';
+import { useAuth } from '../../context/AuthContext';
+import EditTeacherModal from '../../components/EditTeacherModal';
 import { deleteDoc, doc } from 'firebase/firestore';
-import { db } from 'src/services/firebaseConfig';
-import CustomAlert from 'src/components/CustomAlert';
-import AddTeacherModal from 'src/components/AddTeacherModal';
+import { db } from '../../services/firebaseConfig';
+import CustomAlert from '../../components/CustomAlert';
+import AddTeacherModal from '../../components/AddTeacherModal';
 
 const TeachersScreen: React.FC = () => {
     const { teachers } = useTeachers();

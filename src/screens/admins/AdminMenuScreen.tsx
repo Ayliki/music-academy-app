@@ -7,14 +7,14 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { NavigationProps } from '../navigation/types';
-import { useUserData } from '../hooks/useUserData';
-import LoadingOverlay from '../components/LoadingOverlay';
-import ProfileSummary from '../components/ProfileSummary';
-import MenuItem from '../components/MenuItem';
-import HeaderMenu from '../components/HeaderMenu';
+import { NavigationProps } from '../../navigation/types';
+import { useUserData } from '../../hooks/useUserData';
+import LoadingOverlay from '../../components/LoadingOverlay';
+import ProfileSummary from '../../components/ProfileSummary';
+import MenuItem from '../../components/MenuItem';
+import HeaderMenu from '../../components/HeaderMenu';
 import { signOut } from 'firebase/auth';
-import { auth } from 'src/services/firebaseConfig';
+import { auth } from '../../services/firebaseConfig';
 
 interface MenuItemData {
     label: string;
