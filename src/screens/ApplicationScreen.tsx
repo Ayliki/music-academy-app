@@ -32,10 +32,12 @@ const ApplicationScreen: React.FC = () => {
 
     // Dropdown state for "Выберите предмет"
     const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
+    // todo переделать под firestore
     const subjects = ['Вокал', 'Хореография', 'Фортепиано', 'Актерское Мастерство', 'Сольфеджио'];
 
     // Dropdown state for "Выберите преподавателя"
     const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
+    // todo переделать под firestore
     const teachers = ['Юля', 'Камила', 'Карина', 'Мария', 'Не важно'];
 
     const handleSubmit = async () => {

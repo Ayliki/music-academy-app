@@ -1,23 +1,29 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, {useState} from 'react';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {SelectableItem} from "../types/SelectableItem";
+
 
 interface SingleSelectDropdownProps {
-    options: string[];
-    selectedOption: string;
+    options: SelectableItem[];
+    selectedOption: string; // Хранит ID выбранного элемента
     onSelectionChange: (newSelection: string) => void;
     placeholder?: string;
     label?: string;
 }
 
-const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
-    options,
-    selectedOption,
-    onSelectionChange,
-    placeholder = 'Выберите',
-    label,
-}) => {
+const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = (
+    {
+        options,
+        selectedOption,
+        onSelectionChange,
+        placeholder = 'Выберите',
+        label,
+    }) => {
     const [open, setOpen] = useState(false);
+
+    // Получаем название (name) по ID
+    const selectedOptionName = options.find(option => option.id === selectedOption)?.name || placeholder;
 
     return (
         <View style={styles.container}>
@@ -26,9 +32,7 @@ const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
                 style={styles.dropdown}
                 onPress={() => setOpen(!open)}
             >
-                <Text style={styles.dropdownText}>
-                    {selectedOption ? selectedOption : placeholder}
-                </Text>
+                <Text style={styles.dropdownText}>{selectedOptionName}</Text>
                 <Ionicons
                     name={open ? 'chevron-up' : 'chevron-down'}
                     size={20}
@@ -38,18 +42,18 @@ const SingleSelectDropdown: React.FC<SingleSelectDropdownProps> = ({
             </TouchableOpacity>
             {open && (
                 <View style={styles.optionsContainer}>
-                    {options.map((option, index) => {
-                        const selected = option === selectedOption;
+                    {options.map((option) => {
+                        const selected = option.id === selectedOption;
                         return (
                             <TouchableOpacity
-                                key={index}
+                                key={option.id}
                                 onPress={() => {
-                                    onSelectionChange(option);
+                                    onSelectionChange(option.id);
                                     setOpen(false);
                                 }}
                                 style={[styles.option, selected && styles.optionSelected]}
                             >
-                                <Text style={styles.optionText}>{option}</Text>
+                                <Text style={styles.optionText}>{option.name}</Text>
                                 {selected && (
                                     <Ionicons
                                         name="checkmark"

@@ -1,16 +1,17 @@
-import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, ScrollView, } from 'react-native';
+import React, {useState} from 'react';
+import {SafeAreaView, StyleSheet, ScrollView,} from 'react-native';
 import Header from '../components/Header';
-import SignupForm, { SignupFormValues } from '../components/SignupForm';
+import SignupForm from '../components/SignUp/SignupForm';
+import SignUpFormValues from '../components/SignUp/SignUpFormValues';
 import SignupVerificationForm from '../components/SignupVerficiationForm';
-import { auth } from '../services/firebaseConfig';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { RootStackParamList } from '../navigation/types';
-import { doc, setDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../services/firebaseConfig';
-import { useAuth } from 'src/context/AuthContext';
+import {auth} from '../services/firebaseConfig';
+import {createUserWithEmailAndPassword} from 'firebase/auth';
+import {useNavigation} from '@react-navigation/native';
+import {NativeStackNavigationProp} from '@react-navigation/native-stack';
+import {RootStackParamList} from '../navigation/types';
+import {doc, setDoc, updateDoc} from 'firebase/firestore';
+import {db} from '../services/firebaseConfig';
+import {useAuth} from 'src/context/AuthContext';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList, 'SignUp'>;
 
@@ -18,21 +19,22 @@ const SignUpScreen: React.FC = () => {
     const [isCodeStep, setIsCodeStep] = useState(false);
     const [tempEmail, setTempEmail] = useState('');
     const [codeInput, setCodeInput] = useState('');
-    const [signupData, setSignupData] = useState<SignupFormValues>({
+    const [signupData, setSignupData] = useState<SignUpFormValues>({
         lastName: '',
         firstName: '',
         middleName: '',
         phone: '',
         email: '',
-        selection: '',
+        groupId: '',
+        subjectId: '',
     });
 
     const navigation = useNavigation<NavigationProp>();
 
-    const { codeVerified } = useAuth();
+    const {codeVerified} = useAuth();
 
     // Step 1: Handle Sign-Up Process
-    const handleSignUp = async (values: SignupFormValues) => {
+    const handleSignUp = async (values: SignUpFormValues) => {
         try {
             setSignupData(values);
 
@@ -45,7 +47,8 @@ const SignUpScreen: React.FC = () => {
                 middleName: values.middleName,
                 phone: values.phone,
                 email: values.email,
-                selection: values.selection,
+                groupId: values.groupId,
+                subjectId: values.subjectId,
                 confirmed: false,
                 codeVerified: false,
                 role: 'default',
@@ -54,8 +57,8 @@ const SignUpScreen: React.FC = () => {
             // Request a verification code from the backend
             const response = await fetch('https://sendemailcode-xjqcjc5s3a-uc.a.run.app', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: values.email }),
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email: values.email}),
             });
             if (response.ok) {
                 setIsCodeStep(true);
@@ -73,8 +76,8 @@ const SignUpScreen: React.FC = () => {
         try {
             const response = await fetch('https://verifyemailcode-xjqcjc5s3a-uc.a.run.app', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: tempEmail, code: codeInput }),
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({email: tempEmail, code: codeInput}),
             });
             if (response.ok) {
                 const data = await response.json();
@@ -98,7 +101,7 @@ const SignUpScreen: React.FC = () => {
     return (
         <SafeAreaView style={styles.safeArea}>
             <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
-                <Header />
+                <Header/>
 
                 {isCodeStep ? (
                     <SignupVerificationForm
@@ -108,7 +111,7 @@ const SignUpScreen: React.FC = () => {
                         onVerify={handleVerifyCode}
                     />
                 ) : (
-                    <SignupForm initialValues={signupData} onSubmit={handleSignUp} />
+                    <SignupForm initialValues={signupData} onSubmit={handleSignUp}/>
                 )}
             </ScrollView>
         </SafeAreaView>
