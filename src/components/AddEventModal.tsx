@@ -1,32 +1,35 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
     Modal,
     View,
     Text,
     TextInput,
     TouchableOpacity,
-    StyleSheet,
     Alert,
+    Keyboard,
+    TouchableWithoutFeedback
 } from 'react-native';
-import { collection, addDoc } from 'firebase/firestore';
-import { db } from '../services/firebaseConfig';
-import { Image } from 'react-native';
+import {collection, addDoc} from 'firebase/firestore';
+import {db} from '../services/firebaseConfig';
+import {Image} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import {styles} from '../styles/AddEventStyles';
 
 interface AddEventModalProps {
     visible: boolean;
     onClose: () => void;
 }
 
-const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
+const AddEventModal: React.FC<AddEventModalProps> = ({visible, onClose}) => {
     const [title, setTitle] = useState('');
     const [date, setDate] = useState('');
     const [time, setTime] = useState('');
     const [image, setImage] = useState<string>('');
     const [loading, setLoading] = useState(false);
 
+    // Функция для обработки выбора изображения
     const handlePickPhoto = async () => {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
             Alert.alert('Ошибка', 'Требуется разрешение для доступа к галерее');
             return;
@@ -40,15 +43,84 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
         if (!result.canceled && result.assets && result.assets.length > 0) {
             setImage(result.assets[0].uri);
         }
-
     };
 
+    // Функция для валидации даты (ДД.ММ.ГГГГ)
+    const handleDateChange = (input: string) => {
+        // Оставляем только цифры
+        const cleanedInput = input.replace(/\D/g, '');
 
+        let formattedDate = '';
+
+        if (cleanedInput.length > 0) {
+            formattedDate = cleanedInput.substring(0, 2);
+        }
+        if (cleanedInput.length > 2) {
+            formattedDate += '.' + cleanedInput.substring(2, 4);
+        }
+        if (cleanedInput.length > 4) {
+            formattedDate += '.' + cleanedInput.substring(4, 8);
+        }
+
+        setDate(formattedDate);
+    };
+
+    // Функция для валидации времени
+    const handleTimeChange = (input: string) => {
+        // Оставляем только цифры
+        const cleanedInput = input.replace(/\D/g, '');
+
+        let formattedTime = '';
+
+        if (cleanedInput.length > 0) {
+            formattedTime = cleanedInput.substring(0, 2);
+        }
+        if (cleanedInput.length > 2) {
+            formattedTime += ':' + cleanedInput.substring(2, 4);
+        }
+
+        setTime(formattedTime);
+    };
+
+    // Проверка, является ли дата и время прошедшими
+    const isDateTimeValid = () => {
+        const dateParts = date.split('.');
+        const timeParts = time.split(':');
+
+        if (dateParts.length !== 3 || timeParts.length !== 2) {
+            Alert.alert('Ошибка', 'Введите дату и время в правильном формате');
+            return false;
+        }
+
+        const day = parseInt(dateParts[0], 10);
+        const month = parseInt(dateParts[1], 10) - 1; // Месяцы в JavaScript начинаются с 0
+        const year = parseInt(dateParts[2], 10);
+        const hours = parseInt(timeParts[0], 10);
+        const minutes = parseInt(timeParts[1], 10);
+
+        const eventDate = new Date(year, month, day, hours, minutes);
+        const currentDate = new Date();
+
+        if (eventDate < currentDate) {
+            Alert.alert('Ошибка', 'Вы не можете выбрать прошедшую дату и время');
+            return false;
+        }
+
+        return true;
+    };
+
+    // Функция для сохранения события
     const handleSave = async () => {
         if (!title || !date || !time) {
             Alert.alert('Ошибка', 'Пожалуйста, заполните все поля');
             return;
         }
+
+        if (!isDateTimeValid()) return;
+
+        // Закрываем модальное окно сразу
+        onClose();
+
         try {
             setLoading(true);
             const newEvent: any = {
@@ -78,161 +150,68 @@ const AddEventModal: React.FC<AddEventModalProps> = ({ visible, onClose }) => {
 
     return (
         <Modal visible={visible} transparent animationType="fade">
-            <View style={styles.modalContainer}>
-                <View style={styles.popup}>
-
-                    <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                        <Text style={styles.closeText}>×</Text>
-                    </TouchableOpacity>
-
-                    <View style={styles.formRow}>
-
-                        <TouchableOpacity onPress={handlePickPhoto} style={styles.photoPlaceholder}>
-                            {image ? (
-                                <Image source={{ uri: image }} style={styles.photoImage} />
-                            ) : (
-                                <Text style={styles.photoPlaceholderText}>Выбрать фото</Text>
-                            )}
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+                <View style={styles.modalContainer}>
+                    <View style={styles.popup}>
+                        <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                            <Text style={styles.closeText}>×</Text>
                         </TouchableOpacity>
 
+                        <View style={styles.formRow}>
+                            <TouchableOpacity onPress={handlePickPhoto} style={styles.photoPlaceholder}>
+                                {image ? (
+                                    <Image source={{uri: image}} style={styles.photoImage}/>
+                                ) : (
+                                    <Text style={styles.photoPlaceholderText}>Выбрать фото</Text>
+                                )}
+                            </TouchableOpacity>
 
-
-                        <View style={styles.inputsContainer}>
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Название:</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="Название"
-                                    placeholderTextColor="#888"
-                                    value={title}
-                                    onChangeText={setTitle}
-                                />
-                            </View>
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Дата:</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="2025-02-10"
-                                    placeholderTextColor="#888"
-                                    value={date}
-                                    onChangeText={setDate}
-                                    keyboardType="numbers-and-punctuation"
-                                />
-                            </View>
-                            <View style={styles.inputGroup}>
-                                <Text style={styles.label}>Время:</Text>
-                                <TextInput
-                                    style={styles.input}
-                                    placeholder="14:00"
-                                    placeholderTextColor="#888"
-                                    value={time}
-                                    onChangeText={setTime}
-                                    keyboardType="numbers-and-punctuation"
-                                />
+                            <View style={styles.inputsContainer}>
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>Название:</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="Название"
+                                        placeholderTextColor="#888"
+                                        value={title}
+                                        onChangeText={setTitle}
+                                    />
+                                </View>
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>Дата (ДД.ММ.ГГГГ):</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="10.02.2025"
+                                        placeholderTextColor="#888"
+                                        value={date}
+                                        onChangeText={handleDateChange}
+                                        keyboardType="number-pad"
+                                    />
+                                </View>
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>Время (ЧЧ:ММ):</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        placeholder="14:00"
+                                        placeholderTextColor="#888"
+                                        value={time}
+                                        onChangeText={handleTimeChange}
+                                        keyboardType="number-pad"
+                                    />
+                                </View>
                             </View>
                         </View>
+                        <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
+                            <Text style={styles.saveButtonText}>
+                                {loading ? 'Сохранение...' : 'Сохранить'}
+                            </Text>
+                        </TouchableOpacity>
                     </View>
-                    <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
-                        <Text style={styles.saveButtonText}>
-                            {loading ? 'Сохранение...' : 'Сохранить'}
-                        </Text>
-                    </TouchableOpacity>
                 </View>
-            </View>
+            </TouchableWithoutFeedback>
         </Modal>
     );
 };
 
 export default AddEventModal;
 
-const styles = StyleSheet.create({
-    modalContainer: {
-        flex: 1,
-        backgroundColor: 'rgba(0,0,0,0.3)',
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    popup: {
-        width: '80%',
-        backgroundColor: '#fff',
-        borderRadius: 8,
-        padding: 20,
-        alignItems: 'center',
-        minHeight: 300,
-    },
-    closeButton: {
-        alignSelf: 'flex-end',
-        padding: 4,
-    },
-    closeText: {
-        fontSize: 30,
-        color: '#000',
-    },
-    modalTitle: {
-        fontSize: 20,
-        fontWeight: '700',
-        marginVertical: 10,
-        color: '#000',
-    },
-    formRow: {
-        flexDirection: 'row',
-        width: '100%',
-        marginVertical: 10,
-    },
-    photoPlaceholder: {
-        width: '40%',
-        aspectRatio: 1,
-        backgroundColor: '#D9D9D9',
-        justifyContent: 'center',
-        alignItems: 'center',
-        borderRadius: 8,
-        marginRight: 10,
-        marginTop: -40,
-    },
-    photoPlaceholderText: {
-        padding: 4,
-        fontSize: 16,
-        fontWeight: '400',
-        textAlign: 'center',
-        color: '#000',
-    },
-    photoImage: {
-        width: '100%',
-        height: '100%',
-        borderRadius: 8,
-    },
-    inputsContainer: {
-        flex: 1,
-        justifyContent: 'space-between',
-    },
-    inputGroup: {
-        marginBottom: 2,
-    },
-    label: {
-        fontSize: 16,
-        marginBottom: 4,
-        color: '#000',
-    },
-    input: {
-        height: 48,
-        borderWidth: 1,
-        maxHeight: 35,
-        borderRadius: 15,
-        paddingHorizontal: 12,
-    },
-    saveButton: {
-        width: '70%',
-        marginTop: 16,
-        backgroundColor: '#43B39E',
-        paddingVertical: 10,
-        paddingHorizontal: 24,
-        borderRadius: 8,
-        maxHeight: 40,
-        alignItems: 'center',
-    },
-    saveButtonText: {
-        color: '#fff',
-        fontSize: 18,
-        fontWeight: '700',
-    },
-});

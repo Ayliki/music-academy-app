@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
-import { Event } from 'src/screens/EventsScreen';
+import {View, Text, Image, StyleSheet} from 'react-native';
+import {Event} from 'src/screens/EventsScreen';
 
 interface EventCardProps {
     event: Event;
@@ -14,16 +14,11 @@ const getImageSource = (image: string) => {
     if (eventImages.hasOwnProperty(image)) {
         return eventImages[image];
     }
-    return { uri: image };
+    return {uri: image};
 };
 
 
-const formatEventDate = (dateStr: string): string => {
-    const [year, month, day] = dateStr.split('-');
-    return `${day}.${month}.${year}`;
-};
-
-const EventCard: React.FC<EventCardProps> = ({ event }) => {
+const EventCard: React.FC<EventCardProps> = ({event}) => {
     return (
         <View style={styles.card}>
             {event.image ? (
@@ -42,7 +37,7 @@ const EventCard: React.FC<EventCardProps> = ({ event }) => {
                 </View>
                 <View style={styles.textLabelContainer}>
                     <Text style={styles.label}>Дата проведения:</Text>
-                    <Text style={styles.eventDate}>{formatEventDate(event.date)}</Text>
+                    <Text style={styles.eventDate}>{event.date}</Text>
                 </View>
             </View>
         </View>
@@ -62,7 +57,7 @@ const styles = StyleSheet.create({
         shadowColor: '#000',
         shadowOpacity: 0.1,
         shadowRadius: 5,
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         elevation: 3,
         overflow: 'hidden',
         alignItems: 'flex-start',
@@ -78,7 +73,7 @@ const styles = StyleSheet.create({
         width: '100%',
         height: '100%',
         resizeMode: 'cover',
-        transform: [{ scale: 1 }],
+        transform: [{scale: 1}],
     },
     cardContent: {
         flex: 1,

@@ -1,13 +1,13 @@
-import React, { useEffect, useState } from 'react';
-import { Alert, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, View, Text } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { Ionicons } from '@expo/vector-icons';
-import { collection, deleteDoc, doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../services/firebaseConfig';
-import { NavigationProps } from '../navigation/types';
+import React, {useEffect, useState} from 'react';
+import {Alert, SafeAreaView, ScrollView, StyleSheet, TouchableOpacity, View, Text} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {Ionicons} from '@expo/vector-icons';
+import {collection, deleteDoc, doc, onSnapshot} from 'firebase/firestore';
+import {db} from '../services/firebaseConfig';
+import {NavigationProps} from '../navigation/types';
 import HeaderMenu from 'src/components/HeaderMenu';
 import EventCard from 'src/components/EventCard';
-import { useAuth } from 'src/context/AuthContext';
+import {useAuth} from 'src/context/AuthContext';
 import AddEventModal from 'src/components/AddEventModal';
 
 export type Event = {
@@ -23,7 +23,7 @@ const EventsScreen: React.FC = () => {
     const [events, setEvents] = useState<Event[]>([]);
     const navigation = useNavigation<NavigationProps>();
     const [isAddEventModalVisible, setIsAddEventModalVisible] = useState(false);
-    const { role } = useAuth();
+    const {role} = useAuth();
 
     useEffect(() => {
         const eventsCol = collection(db, 'events');
@@ -37,13 +37,29 @@ const EventsScreen: React.FC = () => {
         return () => unsubscribe();
     }, []);
 
-    const handleDeleteEvent = async (id: string) => {
-        try {
-            await deleteDoc(doc(db, 'events', id));
-        } catch (error: any) {
-            console.error('Error deleting event:', error);
-            Alert.alert('Ошибка', 'Не удалось удалить событие');
-        }
+    const handleDeleteEvent = (id: string) => {
+        Alert.alert(
+            "Вы точно хотите удалить событие?",
+            "Это действие нельзя будет отменить.",
+            [
+                {
+                    text: "Отмена",
+                    style: "cancel",
+                },
+                {
+                    text: "Удалить",
+                    onPress: async () => {
+                        try {
+                            await deleteDoc(doc(db, 'events', id));
+                        } catch (error: any) {
+                            console.error('Error deleting event:', error);
+                            Alert.alert('Ошибка', 'Не удалось удалить событие');
+                        }
+                    },
+                    style: "destructive",
+                }
+            ]
+        );
     };
 
     const handleBack = () => {
@@ -59,17 +75,17 @@ const EventsScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <HeaderMenu title="События" onBack={handleBack} />
+            <HeaderMenu title="События" onBack={handleBack}/>
             <ScrollView contentContainerStyle={styles.eventsList}>
                 {events.map((event) => (
                     <View key={event.id} style={styles.eventContainer}>
-                        <EventCard event={event} />
+                        <EventCard event={event}/>
                         {role === 'administrator' && (
                             <TouchableOpacity
                                 style={styles.deleteIcon}
                                 onPress={() => handleDeleteEvent(event.id)}
                             >
-                                <Ionicons name="trash" size={24} color="red" />
+                                <Ionicons name="trash" size={24} color="red"/>
                             </TouchableOpacity>
                         )}
                     </View>
