@@ -82,7 +82,6 @@ export const styles = StyleSheet.create({
         paddingVertical: 10,
         paddingHorizontal: 24,
         borderRadius: 8,
-        maxHeight: 40,
         alignItems: 'center',
         justifyContent: 'center',
     },
