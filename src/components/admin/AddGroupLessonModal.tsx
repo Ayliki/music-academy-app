@@ -11,9 +11,9 @@ import {
     TextInput,
 } from 'react-native';
 import {collection, getDocs, query, where, addDoc} from 'firebase/firestore';
-import {db} from '../services/firebaseConfig';
-import SingleSelectDropdown from './SingleSelectDropdown';
-import {styles} from '../styles/AddGroupModalStyles';
+import {db} from '../../services/firebaseConfig';
+import SingleSelectDropdown from '../SingleSelectDropdown';
+import {styles} from '../../styles/AddGroupLessonModalStyles';
 
 interface AddLessonModalProps {
     visible: boolean;

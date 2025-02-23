@@ -15,7 +15,8 @@ import ScheduleDatePicker from '../components/ScheduleDatePicker';
 import ScheduleTable, {Lesson} from '../components/ScheduleTable';
 import {db} from '../services/firebaseConfig';
 import {useAuth} from 'src/context/AuthContext';
-import AddGroupLessonModal from "../components/AddGroupLessonModal";
+import AddGroupLessonModal from "../components/admin/AddGroupLessonModal";
+import AddIndividualLessonModal from "../components/admin/AddIndividualLessonModal";
 
 const generateDateOptions = (baseDate: Date): string[] => {
     const options: string[] = [];
@@ -141,7 +142,7 @@ const ScheduleScreen: React.FC = () => {
             )}
 
             {role == 'administrator' && (
-                <AddGroupLessonModal
+                <AddIndividualLessonModal
                     visible={isAddIndividualLessonModalVisible}
                     onClose={() => setIsAddIndividualLessonModalVisible(false)}
                 />

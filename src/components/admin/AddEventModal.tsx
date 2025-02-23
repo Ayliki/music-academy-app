@@ -10,10 +10,10 @@ import {
     TouchableWithoutFeedback
 } from 'react-native';
 import {collection, addDoc} from 'firebase/firestore';
-import {db} from '../services/firebaseConfig';
+import {db} from '../../services/firebaseConfig';
 import {Image} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import {styles} from '../styles/AddEventStyles';
+import {styles} from '../../styles/AddEventStyles';
 
 interface AddEventModalProps {
     visible: boolean;

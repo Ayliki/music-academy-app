@@ -8,7 +8,7 @@ import {NavigationProps} from '../navigation/types';
 import HeaderMenu from 'src/components/HeaderMenu';
 import EventCard from 'src/components/EventCard';
 import {useAuth} from 'src/context/AuthContext';
-import AddEventModal from 'src/components/AddEventModal';
+import AddEventModal from '../components/admin/AddEventModal';
 
 export type Event = {
     id: string;
