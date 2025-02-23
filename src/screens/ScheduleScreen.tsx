@@ -5,7 +5,6 @@ import {
     View,
     Text,
     TouchableOpacity,
-    Modal,
 } from 'react-native';
 import {doc, setDoc} from 'firebase/firestore';
 import {useNavigation} from '@react-navigation/native';
@@ -16,8 +15,7 @@ import ScheduleDatePicker from '../components/ScheduleDatePicker';
 import ScheduleTable, {Lesson} from '../components/ScheduleTable';
 import {db} from '../services/firebaseConfig';
 import {useAuth} from 'src/context/AuthContext';
-import AddGroupLesson from "../components/AddGroupLesson";
-import AddIndividualLesson from "../components/AddIndividualLesson";
+import AddGroupLessonModal from "../components/AddGroupLessonModal";
 
 const generateDateOptions = (baseDate: Date): string[] => {
     const options: string[] = [];
@@ -41,6 +39,8 @@ const generateDateOptions = (baseDate: Date): string[] => {
 const ScheduleScreen: React.FC = () => {
     const {lessons, setLessons} = useLessons();
     const navigation = useNavigation<NavigationProps>();
+    const [isAddGroupLessonModalVisible, setIsAddGroupLessonModalVisible] = useState(false);
+    const [isAddIndividualLessonModalVisible, setIsAddIndividualLessonModalVisible] = useState(false);
     const {role} = useAuth();
 
     const today = new Date();
@@ -55,9 +55,6 @@ const ScheduleScreen: React.FC = () => {
         .trim();
     const defaultSelected = `${todayWeekday} ${todayNum} ${todayMonth}`;
     const [selectedDay, setSelectedDay] = useState(defaultSelected);
-
-    const [isAddGroupLessonVisible, setIsAddGroupLessonVisible] = useState(false);
-    const [isAddIndividualLessonVisible, setIsAddIndividualLessonVisible] = useState(false);
 
     const dateOptions = generateDateOptions(today);
 
@@ -93,22 +90,6 @@ const ScheduleScreen: React.FC = () => {
         }
     };
 
-    const handleAddGroupLesson = () => {
-        setIsAddGroupLessonVisible(true);
-    };
-
-    const closeAddGroupLesson = () => {
-        setIsAddGroupLessonVisible(false);
-    };
-
-    const handleAddIndividualLesson = () => {
-        setIsAddIndividualLessonVisible(true);
-    };
-
-    const closeAddIndividualLesson = () => {
-        setIsAddIndividualLessonVisible(false);
-    };
-
     return (
         <SafeAreaView style={styles.safeArea}>
             {/* Основной контент, растягиваем на весь экран */}
@@ -136,13 +117,14 @@ const ScheduleScreen: React.FC = () => {
                 <View style={styles.adminButtonsContainer}>
                     <TouchableOpacity
                         style={styles.blueButton}
-                        onPress={handleAddGroupLesson}
+                        onPress={() => setIsAddGroupLessonModalVisible(true)}
                     >
                         <Text style={styles.buttonText}>Добавить Г/З</Text>
                     </TouchableOpacity>
+
                     <TouchableOpacity
                         style={styles.blueButton}
-                        onPress={handleAddIndividualLesson}
+                        onPress={() => setIsAddIndividualLessonModalVisible(true)}
                     >
                         <Text style={styles.buttonText}>Добавить И/З</Text>
                     </TouchableOpacity>
@@ -151,26 +133,19 @@ const ScheduleScreen: React.FC = () => {
             )}
 
             {/* Модалка «Добавить групповое занятие» */}
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={isAddGroupLessonVisible}
-                onRequestClose={closeAddGroupLesson}
-            >
-                {/* Внутри Modal отображаем саму форму */}
-                <AddGroupLesson onClose={closeAddGroupLesson}/>
-            </Modal>
+            {role == 'administrator' && (
+                <AddGroupLessonModal
+                    visible={isAddGroupLessonModalVisible}
+                    onClose={() => setIsAddGroupLessonModalVisible(false)}
+                />
+            )}
 
-            {/* Модалка «Добавить индивидуальное занятие» */}
-            <Modal
-                animationType="slide"
-                transparent={true}
-                visible={isAddIndividualLessonVisible}
-                onRequestClose={closeAddIndividualLesson}
-            >
-                {/* Внутри Modal отображаем саму форму */}
-                <AddIndividualLesson onClose={closeAddIndividualLesson}/>
-            </Modal>
+            {role == 'administrator' && (
+                <AddGroupLessonModal
+                    visible={isAddIndividualLessonModalVisible}
+                    onClose={() => setIsAddIndividualLessonModalVisible(false)}
+                />
+            )}
 
         </SafeAreaView>
     );

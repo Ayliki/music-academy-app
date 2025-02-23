@@ -67,16 +67,41 @@ const AddEventModal: React.FC<AddEventModalProps> = ({visible, onClose}) => {
 
     // Функция для валидации времени
     const handleTimeChange = (input: string) => {
-        // Оставляем только цифры
+        // Убираем все символы, кроме цифр
         const cleanedInput = input.replace(/\D/g, '');
+
+        // Если нет цифр, сбрасываем время
+        if (!cleanedInput) {
+            setTime('');
+            return;
+        }
 
         let formattedTime = '';
 
-        if (cleanedInput.length > 0) {
-            formattedTime = cleanedInput.substring(0, 2);
+        // Обработка часов
+        if (cleanedInput.length >= 2) {
+            const hours = cleanedInput.substring(0, 2);
+            const hoursNum = parseInt(hours, 10);
+            if (hoursNum > 23) {
+                Alert.alert('Некорректное время', 'Часы не могут быть больше 23');
+                return;
+            }
+            formattedTime = hours;
+        } else {
+            // Если введено меньше 2 цифр, просто используем их
+            formattedTime = cleanedInput;
         }
+
+        // Обработка минут, если они есть
         if (cleanedInput.length > 2) {
-            formattedTime += ':' + cleanedInput.substring(2, 4);
+            // Берём либо 2 цифры, либо оставшиеся, если их меньше
+            const minutes = cleanedInput.length >= 4 ? cleanedInput.substring(2, 4) : cleanedInput.substring(2);
+            const minutesNum = parseInt(minutes, 10);
+            if (minutesNum > 59) {
+                Alert.alert('Некорректное время', 'Минуты не могут быть больше 59');
+                return;
+            }
+            formattedTime += ':' + minutes;
         }
 
         setTime(formattedTime);

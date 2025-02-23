@@ -22,14 +22,7 @@ const ScheduleHeader: React.FC<ScheduleHeaderProps> = ({
     const { role } = useAuth();
 
     const handleBack = () => {
-        if (role === 'administrator') {
-            navigation.navigate('AdminMenu')
-        }
-        if (role === "teacher") {
-            navigation.navigate("TeacherMenu");
-        } else {
-            navigation.navigate("Menu");
-        }
+        navigation.goBack();
     };
 
     return (
