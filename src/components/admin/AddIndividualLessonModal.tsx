@@ -16,11 +16,12 @@ import SingleSelectDropdown from '../SingleSelectDropdown';
 import {styles} from '../../styles/AddGroupLessonModalStyles';
 
 interface AddLessonModalProps {
+    date: Date;
     visible: boolean;
     onClose: () => void;
 }
 
-const AddIndividualLessonModal: React.FC<AddLessonModalProps> = ({visible, onClose}) => {
+const AddIndividualLessonModal: React.FC<AddLessonModalProps> = ({date, visible, onClose}) => {
     const [selectedSubject, setSelectedSubject] = useState('');
     const [selectedTeacher, setSelectedTeacher] = useState('');
     const [selectedStudent, setSelectedStudent] = useState('');
@@ -32,6 +33,14 @@ const AddIndividualLessonModal: React.FC<AddLessonModalProps> = ({visible, onClo
     const [loading, setLoading] = useState(false);
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
+
+    // Функция для форматирования даты в формат "ГГГГ-ММ-ДД"
+    const formatDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
 
     // Функция для преобразования строки "ЧЧ:ММ" в минуты с начала дня
     const parseTimeToMinutes = (timeStr: string) => {
@@ -262,15 +271,13 @@ const AddIndividualLessonModal: React.FC<AddLessonModalProps> = ({visible, onClo
         setLoading(true);
 
         try {
-            // Получаем сегодняшнюю дату в формате ГГГГ-ММ-ДД
-            const today = new Date();
-            const todayStr = today.toISOString().split('T')[0];
+            const formattedDate = formatDate(date);
 
             // Проверка на конфликт занятий в этом кабинете на сегодня в указанное время
             const lessonsQuery = query(
                 collection(db, 'lessons'),
                 where('roomId', '==', selectedRoom),
-                where('date', '==', todayStr)
+                where('date', '==', formattedDate)
             );
             const lessonsSnapshot = await getDocs(lessonsQuery);
             const conflict = lessonsSnapshot.docs.some(
@@ -299,7 +306,7 @@ const AddIndividualLessonModal: React.FC<AddLessonModalProps> = ({visible, onClo
                 roomId: selectedRoom,
                 timeStart: startTime,
                 timeEnd: endTime,
-                date: todayStr,
+                date: formattedDate,
             };
 
             await addDoc(collection(db, 'lessons'), lessonData);

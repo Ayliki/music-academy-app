@@ -16,11 +16,12 @@ import SingleSelectDropdown from '../SingleSelectDropdown';
 import {styles} from '../../styles/AddGroupLessonModalStyles';
 
 interface AddLessonModalProps {
+    date: Date;
     visible: boolean;
     onClose: () => void;
 }
 
-const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({visible, onClose}) => {
+const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({date, visible, onClose}) => {
     const [selectedSubject, setSelectedSubject] = useState('');
     const [selectedTeacher, setSelectedTeacher] = useState('');
     const [selectedGroup, setSelectedGroup] = useState('');
@@ -32,6 +33,14 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({visible, onClose}) 
     const [loading, setLoading] = useState(false);
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
+
+    // Функция для форматирования даты в формат "ГГГГ-ММ-ДД"
+    const formatDate = (date: Date) => {
+        const year = date.getFullYear();
+        const month = (date.getMonth() + 1).toString().padStart(2, '0');
+        const day = date.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
 
     // Функция для преобразования строки "ЧЧ:ММ" в минуты с начала дня
     const parseTimeToMinutes = (timeStr: string) => {
@@ -142,18 +151,12 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({visible, onClose}) 
 
     // Функция для валидации времени начала
     const handleStartTimeChange = (input: string) => {
-        // Убираем все символы, кроме цифр
         const cleanedInput = input.replace(/\D/g, '');
-
-        // Если нет цифр, сбрасываем время
         if (!cleanedInput) {
             setStartTime('');
             return;
         }
-
         let formattedTime = '';
-
-        // Обработка часов
         if (cleanedInput.length >= 2) {
             const hours = cleanedInput.substring(0, 2);
             const hoursNum = parseInt(hours, 10);
@@ -163,13 +166,9 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({visible, onClose}) 
             }
             formattedTime = hours;
         } else {
-            // Если введено меньше 2 цифр, просто используем их
             formattedTime = cleanedInput;
         }
-
-        // Обработка минут, если они есть
         if (cleanedInput.length > 2) {
-            // Берём либо 2 цифры, либо оставшиеся, если их меньше
             const minutes = cleanedInput.length >= 4 ? cleanedInput.substring(2, 4) : cleanedInput.substring(2);
             const minutesNum = parseInt(minutes, 10);
             if (minutesNum > 59) {
@@ -178,24 +177,17 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({visible, onClose}) 
             }
             formattedTime += ':' + minutes;
         }
-
         setStartTime(formattedTime);
     };
 
-    // Функция для валидации времени
+    // Функция для валидации времени окончания
     const handleEndTimeChange = (input: string) => {
-        // Убираем все символы, кроме цифр
         const cleanedInput = input.replace(/\D/g, '');
-
-        // Если нет цифр, сбрасываем время
         if (!cleanedInput) {
             setEndTime('');
             return;
         }
-
         let formattedTime = '';
-
-        // Обработка часов
         if (cleanedInput.length >= 2) {
             const hours = cleanedInput.substring(0, 2);
             const hoursNum = parseInt(hours, 10);
@@ -205,13 +197,9 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({visible, onClose}) 
             }
             formattedTime = hours;
         } else {
-            // Если введено меньше 2 цифр, просто используем их
             formattedTime = cleanedInput;
         }
-
-        // Обработка минут, если они есть
         if (cleanedInput.length > 2) {
-            // Берём либо 2 цифры, либо оставшиеся, если их меньше
             const minutes = cleanedInput.length >= 4 ? cleanedInput.substring(2, 4) : cleanedInput.substring(2);
             const minutesNum = parseInt(minutes, 10);
             if (minutesNum > 59) {
@@ -220,7 +208,6 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({visible, onClose}) 
             }
             formattedTime += ':' + minutes;
         }
-
         setEndTime(formattedTime);
     };
 
@@ -236,7 +223,6 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({visible, onClose}) 
             return;
         }
 
-        // Проверка формата времени (ЧЧ:ММ)
         const timeRegex = /^\d{2}:\d{2}$/;
         if (!timeRegex.test(startTime) || !timeRegex.test(endTime)) {
             Alert.alert('Ошибка', 'Время должно быть в формате ЧЧ:ММ');
@@ -251,38 +237,31 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({visible, onClose}) 
         }
 
         setLoading(true);
-
         try {
-            // Получаем сегодняшнюю дату в формате ГГГГ-ММ-ДД
-            const today = new Date();
-            const todayStr = today.toISOString().split('T')[0];
+            const formattedDate = formatDate(date);
 
-            // Проверка на конфликт занятий в этом кабинете на сегодня в указанное время
+            // Проверка на конфликт занятий в выбранном кабинете на указанную дату
             const lessonsQuery = query(
                 collection(db, 'lessons'),
                 where('roomId', '==', selectedRoom),
-                where('date', '==', todayStr)
+                where('date', '==', formattedDate)
             );
             const lessonsSnapshot = await getDocs(lessonsQuery);
-            const conflict = lessonsSnapshot.docs.some(
-                doc => {
-                    const lesson = doc.data();
-                    if (!lesson.startTime || !lesson.endTime) {
-                        return false;
-                    }
-                    const existingStart = parseTimeToMinutes(lesson.startTime);
-                    const existingEnd = parseTimeToMinutes(lesson.endTime);
-                    // Проверяем, пересекается ли интервал нового занятия с уже запланированным
-                    return startMinutes < existingEnd && endMinutes > existingStart;
+            const conflict = lessonsSnapshot.docs.some(doc => {
+                const lesson = doc.data();
+                if (!lesson.timeStart || !lesson.timeEnd) {
+                    return false;
                 }
-            );
+                const existingStart = parseTimeToMinutes(lesson.timeStart);
+                const existingEnd = parseTimeToMinutes(lesson.timeEnd);
+                return startMinutes < existingEnd && endMinutes > existingStart;
+            });
             if (conflict) {
                 Alert.alert('Ошибка', 'На это время уже запланировано занятие в этом кабинете');
                 setLoading(false);
                 return;
             }
 
-            // Формируем объект данных урока с добавлением времени и даты
             const lessonData = {
                 subjectId: selectedSubject,
                 teacherId: selectedTeacher,
@@ -290,7 +269,7 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({visible, onClose}) 
                 roomId: selectedRoom,
                 timeStart: startTime,
                 timeEnd: endTime,
-                date: todayStr,
+                date: formattedDate,
             };
 
             await addDoc(collection(db, 'lessons'), lessonData);
@@ -322,7 +301,6 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({visible, onClose}) 
                             <Text style={styles.closeText}>×</Text>
                         </TouchableOpacity>
 
-                        {/* Выпадающий список для выбора предмета */}
                         <SingleSelectDropdown
                             options={subjects}
                             selectedOption={selectedSubject}
@@ -331,7 +309,6 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({visible, onClose}) 
                             label="Предмет:"
                         />
 
-                        {/* Если предмет не выбран, остальные поля становятся недоступными */}
                         <View pointerEvents={selectedSubject ? 'auto' : 'none'}
                               style={{opacity: selectedSubject ? 1 : 0.5}}>
                             <SingleSelectDropdown
@@ -365,7 +342,6 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({visible, onClose}) 
                             />
                         </View>
 
-                        {/* Поля для ввода времени начала и окончания занятия */}
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>Время начала (ЧЧ:ММ):</Text>
                             <TextInput

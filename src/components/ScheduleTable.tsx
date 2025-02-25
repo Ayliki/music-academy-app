@@ -1,17 +1,21 @@
-import React from "react";
-import { View, Text, ScrollView, TouchableOpacity, StyleSheet } from "react-native";
+import React, {useState, useEffect} from 'react';
+import {View, Text, ScrollView, TouchableOpacity} from "react-native";
+import styles from '../styles/ScheduleTableStyles';
+import {collection, getDocs} from 'firebase/firestore';
+import {db} from '../services/firebaseConfig';
 
 export type Lesson = {
     id: string;
+    lessonId: string;
+    groupId: string;
+    roomId: string;
+    subjectId: string;
+    teacherId: string;
     timeStart: string;
     timeEnd: string;
-    lesson: string;
-    room: string;
-    instructor: string;
-    bgColor: string;
     confirmed?: boolean;
     actions?: boolean;
-    dayLabel: string;
+    date: string;
 };
 
 type ScheduleTableProps = {
@@ -20,7 +24,57 @@ type ScheduleTableProps = {
     onCancel: (lesson: Lesson) => void;
 };
 
-const ScheduleTable: React.FC<ScheduleTableProps> = ({ lessons, onConfirm, onCancel }) => {
+type RoomMapping = {
+    name: string;
+    color: string;
+};
+
+const ScheduleTable: React.FC<ScheduleTableProps> = ({lessons, onConfirm, onCancel}) => {
+    // Словари для сопоставления ID с именами
+    const [subjectsMap, setSubjectsMap] = useState<{ [key: string]: string }>({});
+    // Теперь roomsMap хранит объект с именем и цветом
+    const [roomsMap, setRoomsMap] = useState<{ [key: string]: RoomMapping }>({});
+    const [teachersMap, setTeachersMap] = useState<{ [key: string]: string }>({});
+
+    useEffect(() => {
+        const fetchMappings = async () => {
+            try {
+                // Получение предметов
+                const subjectsSnapshot = await getDocs(collection(db, 'subjects'));
+                const subjects: { [key: string]: string } = {};
+                subjectsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    subjects[doc.id] = data.name;
+                });
+                setSubjectsMap(subjects);
+
+                // Получение кабинетов: сохраняем и имя, и цвет (room.color)
+                const roomsSnapshot = await getDocs(collection(db, 'rooms'));
+                const rooms: { [key: string]: RoomMapping } = {};
+                roomsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    // Предполагается, что в документе есть поля name и color
+                    rooms[doc.id] = {name: data.name, color: data.color};
+                });
+                setRoomsMap(rooms);
+
+                // Получение преподавателей (из коллекции "users")
+                const teachersSnapshot = await getDocs(collection(db, 'users'));
+                const teachers: { [key: string]: string } = {};
+                teachersSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    // Формируем полное имя преподавателя (например, "Иванов Иван")
+                    teachers[doc.id] = `${data.lastName || ''} ${data.firstName || ''} ${data.middleName || ''}`.trim();
+                });
+                setTeachersMap(teachers);
+            } catch (error) {
+                console.error("Error fetching mappings: ", error);
+            }
+        };
+
+        fetchMappings();
+    }, []);
+
     return (
         <ScrollView style={styles.scheduleContainer}>
             <View style={styles.scheduleTable}>
@@ -35,35 +89,46 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({ lessons, onConfirm, onCan
                 </View>
                 <View style={styles.rightColumn}>
                     <Text style={styles.columnHeader}>Занятие</Text>
-                    {lessons.map((lesson, index) => (
-                        <View key={index} style={[styles.lessonCard, { backgroundColor: lesson.bgColor }]}>
-                            <Text style={styles.lessonName}>{lesson.lesson}</Text>
-                            <Text style={styles.roomText}>{lesson.room}</Text>
-                            <Text style={styles.instructorText}>{lesson.instructor}</Text>
-                            {lesson.confirmed === undefined && lesson.actions && (
-                                <View style={styles.actionsContainer}>
-                                    <TouchableOpacity
-                                        style={styles.confirmButton}
-                                        onPress={() => onConfirm(lesson)}
-                                    >
-                                        <Text style={styles.actionButtonText}>Подтвердить</Text>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={styles.cancelButton}
-                                        onPress={() => onCancel(lesson)}
-                                    >
-                                        <Text style={styles.actionButtonText}>Отменить</Text>
-                                    </TouchableOpacity>
-                                </View>
-                            )}
-                            {lesson.confirmed === true && (
-                                <Text style={styles.confirmedText}>Подтверждено</Text>
-                            )}
-                            {lesson.confirmed === false && (
-                                <Text style={styles.canceledText}>Отменено</Text>
-                            )}
-                        </View>
-                    ))}
+                    {lessons.map((lesson, index) => {
+                        // Получаем название предмета
+                        const subjectName = subjectsMap[lesson.subjectId] || lesson.subjectId;
+                        // Получаем информацию о кабинете: имя и цвет
+                        const roomData = roomsMap[lesson.roomId];
+                        const roomName = roomData ? roomData.name : lesson.roomId;
+                        const roomColor = roomData ? roomData.color : 'gray';
+                        // Получаем имя преподавателя
+                        const teacherName = teachersMap[lesson.teacherId] || lesson.teacherId;
+
+                        return (
+                            <View key={index} style={[styles.lessonCard, {backgroundColor: roomColor}]}>
+                                <Text style={styles.lessonName}>{subjectName}</Text>
+                                <Text style={styles.roomText}>Каб: {roomName}</Text>
+                                <Text style={styles.instructorText}>Преподаватель: {teacherName}</Text>
+                                {lesson.actions && lesson.confirmed === undefined && (
+                                    <View style={styles.actionsContainer}>
+                                        <TouchableOpacity
+                                            style={styles.confirmButton}
+                                            onPress={() => onConfirm(lesson)}
+                                        >
+                                            <Text style={styles.actionButtonText}>Подтвердить</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={styles.cancelButton}
+                                            onPress={() => onCancel(lesson)}
+                                        >
+                                            <Text style={styles.actionButtonText}>Отменить</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+                                {lesson.confirmed === true && (
+                                    <Text style={styles.confirmedText}>Подтверждено</Text>
+                                )}
+                                {lesson.confirmed === false && (
+                                    <Text style={styles.canceledText}>Отменено</Text>
+                                )}
+                            </View>
+                        );
+                    })}
                 </View>
             </View>
         </ScrollView>
@@ -71,112 +136,3 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({ lessons, onConfirm, onCan
 };
 
 export default ScheduleTable;
-
-const styles = StyleSheet.create({
-    scheduleContainer: {
-        flex: 1,
-        paddingHorizontal: 16,
-        marginBottom: 32,
-    },
-    scheduleTable: {
-        flexDirection: 'row',
-    },
-    leftColumn: {
-        width: 90,
-        borderRightWidth: 2,
-        borderRightColor: '#ccc',
-    },
-    rightColumn: {
-        flex: 1,
-        paddingLeft: 10,
-    },
-    columnHeader: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: '#666666',
-        marginBottom: 12,
-    },
-    timeRow: {
-        marginBottom: 80,
-        alignItems: 'flex-start',
-    },
-    startTime: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: '#66666',
-    },
-    endTime: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: '#ABABAB',
-    },
-    lessonCard: {
-        flex: 1,
-        borderRadius: 8,
-        padding: 12,
-        marginBottom: 25,
-        justifyContent: 'center',
-        alignItems: 'flex-start',
-    },
-    lessonName: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: '#fff',
-        marginBottom: 4,
-    },
-    roomText: {
-        fontSize: 20,
-        fontWeight: '600',
-        color: '#fff',
-        marginBottom: 2,
-    },
-    instructorText: {
-        fontSize: 18,
-        fontWeight: '600',
-        color: '#fff',
-        marginBottom: 4,
-    },
-    actionsContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-around',
-        width: '100%',
-        marginTop: 8,
-    },
-    confirmButton: {
-        backgroundColor: '#E2FBE3',
-        paddingVertical: 5,
-        paddingHorizontal: 5,
-        borderRadius: 15,
-        flex: 1,
-        marginRight: 8,
-        alignItems: 'center',
-        minWidth: 80,
-    },
-    cancelButton: {
-        backgroundColor: '#E83D3D',
-        paddingVertical: 5,
-        paddingHorizontal: 5,
-        borderRadius: 15,
-        flex: 1,
-        marginLeft: 8,
-        alignItems: 'center',
-        minWidth: 80,
-    },
-    actionButtonText: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: '#000000',
-    },
-    confirmedText: {
-        fontSize: 16,
-        color: '#fff',
-        fontWeight: 'bold',
-        marginTop: 8,
-    },
-    canceledText: {
-        fontSize: 16,
-        color: '#fff',
-        fontWeight: 'bold',
-        marginTop: 8,
-    },
-});

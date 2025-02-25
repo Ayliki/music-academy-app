@@ -38,7 +38,6 @@ const ScheduleHeader: React.FC<ScheduleHeaderProps> = ({
                 <View style={styles.dateTextContainer}>
                     <Text style={styles.dayText}>{todayWeekday}</Text>
                     <Text style={styles.yearText}>2025 год</Text>
-                    <Text style={styles.groupLabel}>Группа: Junior 2</Text>
                 </View>
                 <TouchableOpacity style={styles.todayButton} onPress={onTodayPress}>
                     <Text style={styles.todayButtonText}>Сегодня</Text>
