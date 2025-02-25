@@ -51,6 +51,8 @@ const ScheduleScreen: React.FC = () => {
     // Храним выбранную дату в формате ISO (ГГГГ-ММ-ДД)
     const [selectedDateIso, setSelectedDateIso] = useState(dateOptions[0].iso);
 
+    const selectedDate = new Date(selectedDateIso);
+
     // Фильтруем уроки по полю date (предполагается, что на бэкенде дата хранится в формате ГГГГ-ММ-ДД)
     const filteredLessons = lessons.filter((lesson: Lesson) => lesson.date === selectedDateIso);
 
@@ -84,16 +86,7 @@ const ScheduleScreen: React.FC = () => {
         <SafeAreaView style={styles.safeArea}>
             <View style={{flex: 1}}>
                 <ScheduleHeader
-                    // Для заголовка можно оставить отображение сегодняшней даты в кратком формате
-                    todayNum={today.getDate()}
-                    todayMonth={today
-                        .toLocaleDateString('ru-RU', {month: 'short'})
-                        .replace(/[.,]/g, '')
-                        .trim()}
-                    todayWeekday={today
-                        .toLocaleDateString('ru-RU', {weekday: 'short'})
-                        .replace(/[.,]/g, '')
-                        .trim()}
+                    selectedDate={selectedDate}
                     onTodayPress={() => setSelectedDateIso(dateOptions[0].iso)}
                 />
                 <ScheduleDatePicker
