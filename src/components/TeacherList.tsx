@@ -11,21 +11,15 @@ type Teacher = {
 
 type TeachersListProps = {
     teachers: Teacher[];
-    isAdmin?: boolean;
-    onEditTeacher?: (teacher: Teacher) => void;
-    onDeleteTeacher?: (teacher: Teacher) => void;
 };
 
-const TeachersList: React.FC<TeachersListProps> = ({ teachers, isAdmin, onEditTeacher, onDeleteTeacher }) => {
+const TeachersList: React.FC<TeachersListProps> = ({ teachers}) => {
     return (
         <ScrollView contentContainerStyle={styles.teacherList}>
             {teachers.map((teacher) => (
                 <TeacherCard
                     key={teacher.id}
                     teacher={teacher}
-                    isAdmin={isAdmin}
-                    onEdit={onEditTeacher}
-                    onDelete={onDeleteTeacher}
                 />
             ))}
         </ScrollView>
