@@ -30,7 +30,7 @@ const generateDateOptions = (baseDate: Date): DateOption[] => {
         d.setDate(baseDate.getDate() + i);
         const iso = d.toISOString().split('T')[0]; // ГГГГ-ММ-ДД
         const display = d
-            .toLocaleDateString('ru-RU', {weekday: 'long', day: 'numeric', month: 'long'})
+            .toLocaleDateString('ru-RU', {weekday: 'short', day: 'numeric', month: 'long'})
             .replace(/[.,]/g, '')
             .trim();
         options.push({iso, display});
