@@ -60,7 +60,7 @@ const MenuScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <HeaderMenu title={'Профиль'} onBack={() => navigation.goBack()} />
+            <HeaderMenu title={'Профиль'} onBack={() => navigation.goBack()} showBackButton={false} />
             <ProfileSummary profile={userData} onPress={() => navigation.navigate('Profile')} />
 
             {/* Menu Items */}

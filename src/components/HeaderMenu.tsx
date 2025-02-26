@@ -5,14 +5,18 @@ import { Ionicons } from '@expo/vector-icons';
 interface HeaderProps {
     title: string;
     onBack: () => void;
+    showBackButton?: boolean;
 }
 
-const HeaderMenu: React.FC<HeaderProps> = ({ title, onBack }) => {
+const HeaderMenu: React.FC<HeaderProps> = ({ title, onBack, showBackButton = true }) => {
     return (
         <View style={styles.headerContainer}>
-            <TouchableOpacity onPress={onBack} style={styles.backButton}>
+            {showBackButton ? (<TouchableOpacity onPress={onBack} style={styles.backButton}>
                 <Ionicons name="chevron-back" size={30} color="black" />
             </TouchableOpacity>
+            ) : (
+                <View style={styles.backButton} />
+            )}
             <Text style={styles.headerTitle}>{title}</Text>
             <View style={styles.placeholder} />
         </View>
@@ -25,6 +29,7 @@ const styles = StyleSheet.create({
     headerContainer: {
         flexDirection: 'row',
         alignItems: 'center',
+        justifyContent: 'space-between',
         paddingVertical: 16,
         backgroundColor: '#fff',
         elevation: 2,
