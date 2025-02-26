@@ -1,7 +1,5 @@
 import React from "react";
-import { View, Text, Image, StyleSheet } from "react-native";
-import { TouchableOpacity } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import {View, Text, Image, StyleSheet} from "react-native";
 
 type Teacher = {
     id: string;
@@ -12,9 +10,6 @@ type Teacher = {
 
 type TeacherCardProps = {
     teacher: Teacher;
-    isAdmin?: boolean;
-    onEdit?: (teacher: Teacher) => void;
-    onDelete?: (teacher: Teacher) => void;
 };
 
 const teacherImages: { [key: string]: any } = {
@@ -25,21 +20,14 @@ const teacherImages: { [key: string]: any } = {
     'teacher5.jpg': require('../../assets/images/teachers/teacher5.png'),
 };
 
-const TeacherCard: React.FC<TeacherCardProps> = ({ teacher, isAdmin = false, onEdit, onDelete }) => {
+const TeacherCard: React.FC<TeacherCardProps> = ({teacher}) => {
     const displayName = teacher.name ? teacher.name.trim() : '';
-    const imageSource = teacherImages[teacher.photo] || { uri: teacher.photo };
-    console.log(teacher.name)
+    const imageSource = teacherImages[teacher.photo] || {uri: teacher.photo};
 
     return (
         <View style={styles.card}>
-            {isAdmin && (
-                <TouchableOpacity style={styles.editIcon} onPress={() => onEdit && onEdit(teacher)}>
-                    <Ionicons name="create" size={20} color="#666666" />
-                </TouchableOpacity>
-            )}
-
             <View style={styles.imageContainer}>
-                <Image source={imageSource} style={styles.profileImage} />
+                <Image source={imageSource} style={styles.profileImage}/>
             </View>
             <View style={styles.cardContent}>
                 <View style={styles.teacherInfo}>
@@ -51,12 +39,6 @@ const TeacherCard: React.FC<TeacherCardProps> = ({ teacher, isAdmin = false, onE
                     <Text style={styles.teacherSubject}>{teacher.subject}</Text>
                 </View>
             </View>
-
-            {isAdmin && (
-                <TouchableOpacity style={styles.deleteIcon} onPress={() => onDelete && onDelete(teacher)}>
-                    <Ionicons name="trash" size={20} color="#666666" />
-                </TouchableOpacity>
-            )}
         </View>
     );
 };
@@ -71,7 +53,7 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         shadowColor: '#000',
         shadowOpacity: 0.1,
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         borderWidth: 3,
         borderColor: '#EEEEEE',
         borderRadius: 15,
@@ -90,7 +72,7 @@ const styles = StyleSheet.create({
         height: 189,
         resizeMode: 'contain',
         borderRadius: 15,
-        transform: [{ scale: 0.8 }],
+        transform: [{scale: 0.8}],
     },
     cardContent: {
         flex: 1,
