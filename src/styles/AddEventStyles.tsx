@@ -36,8 +36,8 @@ export const styles = StyleSheet.create({
         marginVertical: 10,
     },
     photoPlaceholder: {
-        width: '40%',
-        aspectRatio: 1,
+        width: 120,
+        height: 120,
         backgroundColor: '#D9D9D9',
         justifyContent: 'center',
         alignItems: 'center',
@@ -95,5 +95,23 @@ export const styles = StyleSheet.create({
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
+    },
+    photoContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    removeButton: {
+        marginTop: 4,
+        marginRight: 10,
+        backgroundColor: '#FF4D4D',
+        paddingVertical: 4,
+        paddingHorizontal: 8,
+        borderRadius: 6,
+        alignSelf: 'center',
+    },
+    removeButtonText: {
+        color: '#fff',
+        fontSize: 12,
+        fontWeight: '600',
     },
 });

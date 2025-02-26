@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
     Modal,
     View,
@@ -9,27 +9,29 @@ import {
     Keyboard,
     TouchableWithoutFeedback,
     Image,
+    ActivityIndicator
 } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import {collection, addDoc} from 'firebase/firestore';
+import {doc, getDoc, updateDoc} from 'firebase/firestore';
 import {db} from '../../services/firebaseConfig';
 import * as ImagePicker from 'expo-image-picker';
 import {styles} from '../../styles/AddEventStyles';
 
-interface AddEventModalProps {
+interface EditEventModalProps {
+    eventId: string;
     visible: boolean;
     onClose: () => void;
 }
 
-const AddEventModal: React.FC<AddEventModalProps> = ({visible, onClose}) => {
+const EditEventModal: React.FC<EditEventModalProps> = ({eventId, visible, onClose}) => {
     const [title, setTitle] = useState('');
     const [date, setDate] = useState(new Date());
     const [image, setImage] = useState<string>('');
-    const [loading, setLoading] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
+    const [isSaving, setIsSaving] = useState(false);
     const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
     const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
 
-    // Обработка выбора изображения
     const handlePickPhoto = async () => {
         const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
@@ -42,9 +44,14 @@ const AddEventModal: React.FC<AddEventModalProps> = ({visible, onClose}) => {
             aspect: [1, 1],
             quality: 0.7,
         });
-        if (!result.canceled && result.assets && result.assets.length > 0) {
+        if (!result.canceled && result.assets.length > 0) {
             setImage(result.assets[0].uri);
         }
+    };
+
+    // Функция для удаления изображения
+    const handleRemovePhoto = () => {
+        setImage('');
     };
 
     // Форматирование даты в формат DD.MM.YYYY
@@ -62,15 +69,57 @@ const AddEventModal: React.FC<AddEventModalProps> = ({visible, onClose}) => {
         return `${hours}:${minutes}`;
     };
 
-    // Управление отображением модальных пикеров
+    // Парсинг даты и времени из строк event.date и event.time
+    const parseDateTime = (dateString: string, timeString: string): Date => {
+        const [day, month, year] = dateString.split('.');
+        const [hours, minutes] = timeString.split(':');
+        return new Date(
+            parseInt(year, 10),
+            parseInt(month, 10) - 1,
+            parseInt(day, 10),
+            parseInt(hours, 10),
+            parseInt(minutes, 10)
+        );
+    };
+
+    useEffect(() => {
+        if (eventId) {
+            fetchEventData();
+        }
+    }, [eventId]);
+
+    const fetchEventData = async () => {
+        try {
+            const eventRef = doc(db, 'events', eventId);
+            const eventSnap = await getDoc(eventRef);
+            if (eventSnap.exists()) {
+                const eventData = eventSnap.data();
+                setTitle(eventData.title);
+                if (eventData.date && eventData.time) {
+                    const combinedDate = parseDateTime(eventData.date, eventData.time);
+                    setDate(combinedDate);
+                } else {
+                    setDate(new Date());
+                }
+                setImage(eventData.image || '');
+            } else {
+                Alert.alert('Ошибка', 'Событие не найдено');
+                onClose();
+            }
+        } catch (error) {
+            console.error('Ошибка загрузки события:', error);
+            Alert.alert('Ошибка', 'Не удалось загрузить данные события');
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
     const showDatePicker = () => setDatePickerVisibility(true);
     const hideDatePicker = () => setDatePickerVisibility(false);
     const showTimePicker = () => setTimePickerVisibility(true);
     const hideTimePicker = () => setTimePickerVisibility(false);
 
-    // Обработка выбора даты
     const handleConfirmDate = (selectedDate: Date) => {
-        // Сравнение только дат (без времени) – сегодняшняя дата допустима
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const chosenDate = new Date(selectedDate);
@@ -80,18 +129,15 @@ const AddEventModal: React.FC<AddEventModalProps> = ({visible, onClose}) => {
             hideDatePicker();
             return;
         }
-        // Обновляем дату, сохраняя текущее время из state
         const updatedDate = new Date(selectedDate);
         updatedDate.setHours(date.getHours(), date.getMinutes());
         setDate(updatedDate);
         hideDatePicker();
     };
 
-    // Обработка выбора времени
     const handleConfirmTime = (selectedTime: Date) => {
         const updatedDate = new Date(date);
         updatedDate.setHours(selectedTime.getHours(), selectedTime.getMinutes());
-        // Если дата сегодня – проверяем, чтобы время не было в прошлом
         if (date.toDateString() === new Date().toDateString() && updatedDate < new Date()) {
             Alert.alert('Ошибка', 'Нельзя выбрать прошедшее время');
             hideTimePicker();
@@ -101,51 +147,40 @@ const AddEventModal: React.FC<AddEventModalProps> = ({visible, onClose}) => {
         hideTimePicker();
     };
 
-    // Общая проверка даты и времени перед сохранением
-    const isDateTimeValid = () => {
-        if (date < new Date()) {
-            Alert.alert('Ошибка', 'Вы не можете выбрать прошедшую дату и время');
-            return false;
-        }
-        return true;
-    };
-
-    // Сохранение события
     const handleSave = async () => {
         if (!title) {
             Alert.alert('Ошибка', 'Пожалуйста, заполните все поля');
             return;
         }
 
-        if (!isDateTimeValid()) return;
-
-        onClose();
-
+        setIsSaving(true);
         try {
-            setLoading(true);
-            const newEvent: any = {
+            const eventRef = doc(db, 'events', eventId);
+            await updateDoc(eventRef, {
                 title,
                 date: formatDate(date),
                 time: formatTime(date),
-                description: '',
-                location: '',
-            };
-            if (image.trim() !== '') {
-                newEvent.image = image;
-            }
-            await addDoc(collection(db, 'events'), newEvent);
-            Alert.alert('Успех', 'Событие добавлено');
+                image,
+            });
+            Alert.alert('Успех', 'Событие обновлено');
             onClose();
-            setTitle('');
-            setDate(new Date());
-            setImage('');
-        } catch (error: any) {
-            console.error('Error saving event:', error);
-            Alert.alert('Ошибка', error.message);
+        } catch (error) {
+            console.error('Ошибка обновления события:', error);
+            Alert.alert('Ошибка', 'Не удалось обновить событие');
         } finally {
-            setLoading(false);
+            setIsSaving(false);
         }
     };
+
+    if (isLoading) {
+        return (
+            <Modal visible={visible} transparent animationType="fade">
+                <View style={styles.modalContainer}>
+                    <ActivityIndicator size="large" color="#000"/>
+                </View>
+            </Modal>
+        );
+    }
 
     return (
         <Modal visible={visible} transparent animationType="fade">
@@ -165,6 +200,11 @@ const AddEventModal: React.FC<AddEventModalProps> = ({visible, onClose}) => {
                                         <Text style={styles.photoPlaceholderText}>Выбрать фото</Text>
                                     )}
                                 </TouchableOpacity>
+                                {image && (
+                                    <TouchableOpacity onPress={handleRemovePhoto} style={styles.removeButton}>
+                                        <Text style={styles.removeButtonText}>Удалить фото</Text>
+                                    </TouchableOpacity>
+                                )}
                             </View>
 
                             <View style={styles.inputsContainer}>
@@ -222,7 +262,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({visible, onClose}) => {
 
                         <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
                             <Text style={styles.saveButtonText}>
-                                {loading ? 'Сохранение...' : 'Сохранить'}
+                                {isSaving ? 'Сохранение...' : 'Сохранить'}
                             </Text>
                         </TouchableOpacity>
                     </View>
@@ -232,4 +272,4 @@ const AddEventModal: React.FC<AddEventModalProps> = ({visible, onClose}) => {
     );
 };
 
-export default AddEventModal;
+export default EditEventModal;
