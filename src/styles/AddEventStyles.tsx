@@ -14,6 +14,7 @@ export const styles = StyleSheet.create({
         padding: 20,
         alignItems: 'center',
         minHeight: 300,
+        alignSelf: 'center',
     },
     closeButton: {
         alignSelf: 'flex-end',
@@ -89,5 +90,10 @@ export const styles = StyleSheet.create({
         color: '#fff',
         fontSize: 18,
         fontWeight: '700',
+    },
+    centeredView: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
     },
 });

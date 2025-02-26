@@ -7,11 +7,12 @@ import {
     TouchableOpacity,
     Alert,
     Keyboard,
-    TouchableWithoutFeedback
+    TouchableWithoutFeedback,
+    Image,
 } from 'react-native';
+import DateTimePickerModal from 'react-native-modal-datetime-picker';
 import {collection, addDoc} from 'firebase/firestore';
 import {db} from '../../services/firebaseConfig';
-import {Image} from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import {styles} from '../../styles/AddEventStyles';
 
@@ -22,12 +23,13 @@ interface AddEventModalProps {
 
 const AddEventModal: React.FC<AddEventModalProps> = ({visible, onClose}) => {
     const [title, setTitle] = useState('');
-    const [date, setDate] = useState('');
-    const [time, setTime] = useState('');
+    const [date, setDate] = useState(new Date());
+    const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
+    const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
     const [image, setImage] = useState<string>('');
     const [loading, setLoading] = useState(false);
 
-    // Функция для обработки выбора изображения
+    // Обработка выбора изображения
     const handlePickPhoto = async () => {
         const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
@@ -45,113 +47,86 @@ const AddEventModal: React.FC<AddEventModalProps> = ({visible, onClose}) => {
         }
     };
 
-    // Функция для валидации даты (ДД.ММ.ГГГГ)
-    const handleDateChange = (input: string) => {
-        // Оставляем только цифры
-        const cleanedInput = input.replace(/\D/g, '');
-
-        let formattedDate = '';
-
-        if (cleanedInput.length > 0) {
-            formattedDate = cleanedInput.substring(0, 2);
-        }
-        if (cleanedInput.length > 2) {
-            formattedDate += '.' + cleanedInput.substring(2, 4);
-        }
-        if (cleanedInput.length > 4) {
-            formattedDate += '.' + cleanedInput.substring(4, 8);
-        }
-
-        setDate(formattedDate);
+    // Форматирование даты в формат DD.MM.YYYY
+    const formatDate = (date: Date) => {
+        const day = ("0" + date.getDate()).slice(-2);
+        const month = ("0" + (date.getMonth() + 1)).slice(-2);
+        const year = date.getFullYear();
+        return `${day}.${month}.${year}`;
     };
 
-    // Функция для валидации времени
-    const handleTimeChange = (input: string) => {
-        // Убираем все символы, кроме цифр
-        const cleanedInput = input.replace(/\D/g, '');
+    // Форматирование времени в формат HH:mm
+    const formatTime = (date: Date) => {
+        const hours = ("0" + date.getHours()).slice(-2);
+        const minutes = ("0" + date.getMinutes()).slice(-2);
+        return `${hours}:${minutes}`;
+    };
 
-        // Если нет цифр, сбрасываем время
-        if (!cleanedInput) {
-            setTime('');
+    // Управление отображением модальных пикеров
+    const showDatePicker = () => setDatePickerVisibility(true);
+    const hideDatePicker = () => setDatePickerVisibility(false);
+    const showTimePicker = () => setTimePickerVisibility(true);
+    const hideTimePicker = () => setTimePickerVisibility(false);
+
+    // Обработка выбора даты
+    const handleConfirmDate = (selectedDate: Date) => {
+        // Сравнение только дат (без времени) – сегодняшняя дата допустима
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const chosenDate = new Date(selectedDate);
+        chosenDate.setHours(0, 0, 0, 0);
+        if (chosenDate < today) {
+            Alert.alert('Ошибка', 'Нельзя выбрать прошедшую дату');
+            hideDatePicker();
             return;
         }
-
-        let formattedTime = '';
-
-        // Обработка часов
-        if (cleanedInput.length >= 2) {
-            const hours = cleanedInput.substring(0, 2);
-            const hoursNum = parseInt(hours, 10);
-            if (hoursNum > 23) {
-                Alert.alert('Некорректное время', 'Часы не могут быть больше 23');
-                return;
-            }
-            formattedTime = hours;
-        } else {
-            // Если введено меньше 2 цифр, просто используем их
-            formattedTime = cleanedInput;
-        }
-
-        // Обработка минут, если они есть
-        if (cleanedInput.length > 2) {
-            // Берём либо 2 цифры, либо оставшиеся, если их меньше
-            const minutes = cleanedInput.length >= 4 ? cleanedInput.substring(2, 4) : cleanedInput.substring(2);
-            const minutesNum = parseInt(minutes, 10);
-            if (minutesNum > 59) {
-                Alert.alert('Некорректное время', 'Минуты не могут быть больше 59');
-                return;
-            }
-            formattedTime += ':' + minutes;
-        }
-
-        setTime(formattedTime);
+        // Обновляем дату, сохраняя текущее время из state
+        const updatedDate = new Date(selectedDate);
+        updatedDate.setHours(date.getHours(), date.getMinutes());
+        setDate(updatedDate);
+        hideDatePicker();
     };
 
-    // Проверка, является ли дата и время прошедшими
-    const isDateTimeValid = () => {
-        const dateParts = date.split('.');
-        const timeParts = time.split(':');
-
-        if (dateParts.length !== 3 || timeParts.length !== 2) {
-            Alert.alert('Ошибка', 'Введите дату и время в правильном формате');
-            return false;
+    // Обработка выбора времени
+    const handleConfirmTime = (selectedTime: Date) => {
+        const updatedDate = new Date(date);
+        updatedDate.setHours(selectedTime.getHours(), selectedTime.getMinutes());
+        // Если дата сегодня – проверяем, чтобы время не было в прошлом
+        if (date.toDateString() === new Date().toDateString() && updatedDate < new Date()) {
+            Alert.alert('Ошибка', 'Нельзя выбрать прошедшее время');
+            hideTimePicker();
+            return;
         }
+        setDate(updatedDate);
+        hideTimePicker();
+    };
 
-        const day = parseInt(dateParts[0], 10);
-        const month = parseInt(dateParts[1], 10) - 1; // Месяцы в JavaScript начинаются с 0
-        const year = parseInt(dateParts[2], 10);
-        const hours = parseInt(timeParts[0], 10);
-        const minutes = parseInt(timeParts[1], 10);
-
-        const eventDate = new Date(year, month, day, hours, minutes);
-        const currentDate = new Date();
-
-        if (eventDate < currentDate) {
+    // Общая проверка даты и времени перед сохранением
+    const isDateTimeValid = () => {
+        if (date < new Date()) {
             Alert.alert('Ошибка', 'Вы не можете выбрать прошедшую дату и время');
             return false;
         }
-
         return true;
     };
 
-    // Функция для сохранения события
+    // Сохранение события
     const handleSave = async () => {
-        if (!title || !date || !time) {
+        if (!title) {
             Alert.alert('Ошибка', 'Пожалуйста, заполните все поля');
             return;
         }
 
         if (!isDateTimeValid()) return;
 
-        // Закрываем модальное окно сразу
         onClose();
 
         try {
             setLoading(true);
             const newEvent: any = {
                 title,
-                date,
-                time,
+                date: formatDate(date),
+                time: formatTime(date),
                 description: '',
                 location: '',
             };
@@ -162,8 +137,7 @@ const AddEventModal: React.FC<AddEventModalProps> = ({visible, onClose}) => {
             Alert.alert('Успех', 'Событие добавлено');
             onClose();
             setTitle('');
-            setDate('');
-            setTime('');
+            setDate(new Date());
             setImage('');
         } catch (error: any) {
             console.error('Error saving event:', error);
@@ -202,30 +176,48 @@ const AddEventModal: React.FC<AddEventModalProps> = ({visible, onClose}) => {
                                         onChangeText={setTitle}
                                     />
                                 </View>
+
                                 <View style={styles.inputGroup}>
-                                    <Text style={styles.label}>Дата (ДД.ММ.ГГГГ):</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="10.02.2025"
-                                        placeholderTextColor="#888"
-                                        value={date}
-                                        onChangeText={handleDateChange}
-                                        keyboardType="number-pad"
+                                    <Text style={styles.label}>Дата:</Text>
+                                    <TouchableOpacity onPress={showDatePicker} style={styles.input}>
+                                        <Text style={{color: '#000'}}>{formatDate(date)}</Text>
+                                    </TouchableOpacity>
+                                    <DateTimePickerModal
+                                        isVisible={isDatePickerVisible}
+                                        mode="date"
+                                        onConfirm={handleConfirmDate}
+                                        onCancel={hideDatePicker}
+                                        minimumDate={new Date()}
+                                        confirmTextIOS={"Подтвердить"}
+                                        cancelTextIOS={"Отменить"}
+                                        pickerContainerStyleIOS={{
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                        }}
                                     />
                                 </View>
+
                                 <View style={styles.inputGroup}>
-                                    <Text style={styles.label}>Время (ЧЧ:ММ):</Text>
-                                    <TextInput
-                                        style={styles.input}
-                                        placeholder="14:00"
-                                        placeholderTextColor="#888"
-                                        value={time}
-                                        onChangeText={handleTimeChange}
-                                        keyboardType="number-pad"
+                                    <Text style={styles.label}>Время:</Text>
+                                    <TouchableOpacity onPress={showTimePicker} style={styles.input}>
+                                        <Text style={{color: '#000'}}>{formatTime(date)}</Text>
+                                    </TouchableOpacity>
+                                    <DateTimePickerModal
+                                        isVisible={isTimePickerVisible}
+                                        mode="time"
+                                        onConfirm={handleConfirmTime}
+                                        onCancel={hideTimePicker}
+                                        confirmTextIOS={"Подтвердить"}
+                                        cancelTextIOS={"Отменить"}
+                                        pickerContainerStyleIOS={{
+                                            justifyContent: 'center',
+                                            alignItems: 'center',
+                                        }}
                                     />
                                 </View>
                             </View>
                         </View>
+
                         <TouchableOpacity onPress={handleSave} style={styles.saveButton}>
                             <Text style={styles.saveButtonText}>
                                 {loading ? 'Сохранение...' : 'Сохранить'}
@@ -239,4 +231,3 @@ const AddEventModal: React.FC<AddEventModalProps> = ({visible, onClose}) => {
 };
 
 export default AddEventModal;
-
