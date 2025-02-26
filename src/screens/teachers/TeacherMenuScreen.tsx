@@ -44,7 +44,7 @@ const TeacherMenuScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <HeaderMenu title="Профиль" onBack={() => navigation.goBack()} />
+            <HeaderMenu title="Профиль" onBack={() => navigation.goBack()} showBackButton={false} />
             <ProfileSummary profile={userData} onPress={() => navigation.navigate('Profile')} />
             <View style={[styles.menuItemsContainer, { paddingHorizontal: width * 0.05 }]}>
                 {menuItems.map((item, index) => (
