@@ -21,6 +21,18 @@ interface AddLessonModalProps {
     onClose: () => void;
 }
 
+// Определяем рабочий график (для каждого дня недели).
+// 0 - воскресенье, 1 - понедельник, ..., 6 - суббота.
+const workingHours: { [key: number]: { start: string; end: string } | null } = {
+    0: null, // Воскресенье — выходной
+    1: { start: '13:00', end: '20:30' }, // Понедельник
+    2: { start: '13:00', end: '20:30' }, // Вторник
+    3: { start: '13:00', end: '20:30' }, // Среда
+    4: { start: '13:00', end: '20:30' }, // Четверг
+    5: { start: '13:00', end: '20:30' }, // Пятница
+    6: { start: '10:00', end: '20:30' }, // Суббота
+};
+
 const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({date, visible, onClose}) => {
     const [selectedSubject, setSelectedSubject] = useState('');
     const [selectedTeacher, setSelectedTeacher] = useState('');
@@ -49,6 +61,13 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({date, visible, onCl
     const parseTimeToMinutes = (timeStr: string) => {
         const [hours, minutes] = timeStr.split(':').map(Number);
         return hours * 60 + minutes;
+    };
+
+    // Форматирование времени в формат HH:mm
+    const formatTime = (date: Date) => {
+        const hours = ("0" + date.getHours()).slice(-2);
+        const minutes = ("0" + date.getMinutes()).slice(-2);
+        return `${hours}:${minutes}`;
     };
 
     // Загрузка предметов при монтировании компонента
@@ -162,12 +181,36 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({date, visible, onCl
     const handleConfirmStartTime = (selectedTime: Date) => {
         const updatedDate = new Date(date);
         updatedDate.setHours(selectedTime.getHours(), selectedTime.getMinutes());
+
         // Если дата сегодня – проверяем, чтобы время не было в прошлом
         if (date.toDateString() === new Date().toDateString() && updatedDate < new Date()) {
             Alert.alert('Ошибка', 'Нельзя выбрать прошедшее время');
             hideStartTimePicker();
             return;
         }
+
+        // Проверяем, что выбранный день не выходной и время попадает в рабочий диапазон
+        const dayOfWeek = updatedDate.getDay();
+        const daySchedule = workingHours[dayOfWeek];
+        if (!daySchedule) {
+            Alert.alert('Ошибка', 'В этот день занятий нет (выходной)');
+            hideStartTimePicker();
+            return;
+        }
+
+        const selectedTimeMinutes = updatedDate.getHours() * 60 + updatedDate.getMinutes();
+        const dayStartMinutes = parseTimeToMinutes(daySchedule.start);
+        const dayEndMinutes = parseTimeToMinutes(daySchedule.end);
+
+        if (selectedTimeMinutes < dayStartMinutes || selectedTimeMinutes > dayEndMinutes) {
+            Alert.alert(
+                'Ошибка',
+                `Можно выбрать время только в промежутке ${daySchedule.start} - ${daySchedule.end}`
+            );
+            hideStartTimePicker();
+            return;
+        }
+
         setStartTime(formatTime(updatedDate));
         hideStartTimePicker();
     };
@@ -176,21 +219,38 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({date, visible, onCl
     const handleConfirmEndTime = (selectedTime: Date) => {
         const updatedDate = new Date(date);
         updatedDate.setHours(selectedTime.getHours(), selectedTime.getMinutes());
+
         // Если дата сегодня – проверяем, чтобы время не было в прошлом
         if (date.toDateString() === new Date().toDateString() && updatedDate < new Date()) {
             Alert.alert('Ошибка', 'Нельзя выбрать прошедшее время');
             hideEndTimePicker();
             return;
         }
+
+        // Проверяем, что выбранный день не выходной и время попадает в рабочий диапазон
+        const dayOfWeek = updatedDate.getDay();
+        const daySchedule = workingHours[dayOfWeek];
+        if (!daySchedule) {
+            Alert.alert('Ошибка', 'В этот день занятий нет (выходной)');
+            hideEndTimePicker();
+            return;
+        }
+
+        const selectedTimeMinutes = updatedDate.getHours() * 60 + updatedDate.getMinutes();
+        const dayStartMinutes = parseTimeToMinutes(daySchedule.start);
+        const dayEndMinutes = parseTimeToMinutes(daySchedule.end);
+
+        if (selectedTimeMinutes < dayStartMinutes || selectedTimeMinutes > dayEndMinutes) {
+            Alert.alert(
+                'Ошибка',
+                `Можно выбрать время только в промежутке ${daySchedule.start} - ${daySchedule.end}`
+            );
+            hideEndTimePicker();
+            return;
+        }
+
         setEndTime(formatTime(updatedDate));
         hideEndTimePicker();
-    };
-
-    // Форматирование времени в формат HH:mm
-    const formatTime = (date: Date) => {
-        const hours = ("0" + date.getHours()).slice(-2);
-        const minutes = ("0" + date.getMinutes()).slice(-2);
-        return `${hours}:${minutes}`;
     };
 
     // Функция для сохранения данных

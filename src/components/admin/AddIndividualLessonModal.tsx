@@ -21,6 +21,18 @@ interface AddLessonModalProps {
     onClose: () => void;
 }
 
+// Определяем рабочий график (для каждого дня недели).
+// 0 - воскресенье, 1 - понедельник, ..., 6 - суббота.
+const workingHours: { [key: number]: { start: string; end: string } | null } = {
+    0: null, // Воскресенье — выходной
+    1: {start: '13:00', end: '20:30'}, // Понедельник
+    2: {start: '13:00', end: '20:30'}, // Вторник
+    3: {start: '13:00', end: '20:30'}, // Среда
+    4: {start: '13:00', end: '20:30'}, // Четверг
+    5: {start: '13:00', end: '20:30'}, // Пятница
+    6: {start: '10:00', end: '20:30'}, // Суббота
+};
+
 const AddIndividualLessonModal: React.FC<AddLessonModalProps> = ({date, visible, onClose}) => {
     const [selectedSubject, setSelectedSubject] = useState('');
     const [selectedTeacher, setSelectedTeacher] = useState('');
@@ -177,6 +189,29 @@ const AddIndividualLessonModal: React.FC<AddLessonModalProps> = ({date, visible,
             hideStartTimePicker();
             return;
         }
+
+        // Проверяем, что выбранный день не выходной и время попадает в рабочий диапазон
+        const dayOfWeek = updatedDate.getDay();
+        const daySchedule = workingHours[dayOfWeek];
+        if (!daySchedule) {
+            Alert.alert('Ошибка', 'В этот день занятий нет (выходной)');
+            hideStartTimePicker();
+            return;
+        }
+
+        const selectedTimeMinutes = updatedDate.getHours() * 60 + updatedDate.getMinutes();
+        const dayStartMinutes = parseTimeToMinutes(daySchedule.start);
+        const dayEndMinutes = parseTimeToMinutes(daySchedule.end);
+
+        if (selectedTimeMinutes < dayStartMinutes || selectedTimeMinutes > dayEndMinutes) {
+            Alert.alert(
+                'Ошибка',
+                `Можно выбрать время только в промежутке ${daySchedule.start} - ${daySchedule.end}`
+            );
+            hideStartTimePicker();
+            return;
+        }
+
         setStartTime(formatTime(updatedDate));
         hideStartTimePicker();
     };
@@ -191,6 +226,29 @@ const AddIndividualLessonModal: React.FC<AddLessonModalProps> = ({date, visible,
             hideEndTimePicker();
             return;
         }
+
+        // Проверяем, что выбранный день не выходной и время попадает в рабочий диапазон
+        const dayOfWeek = updatedDate.getDay();
+        const daySchedule = workingHours[dayOfWeek];
+        if (!daySchedule) {
+            Alert.alert('Ошибка', 'В этот день занятий нет (выходной)');
+            hideEndTimePicker();
+            return;
+        }
+
+        const selectedTimeMinutes = updatedDate.getHours() * 60 + updatedDate.getMinutes();
+        const dayStartMinutes = parseTimeToMinutes(daySchedule.start);
+        const dayEndMinutes = parseTimeToMinutes(daySchedule.end);
+
+        if (selectedTimeMinutes < dayStartMinutes || selectedTimeMinutes > dayEndMinutes) {
+            Alert.alert(
+                'Ошибка',
+                `Можно выбрать время только в промежутке ${daySchedule.start} - ${daySchedule.end}`
+            );
+            hideEndTimePicker();
+            return;
+        }
+
         setEndTime(formatTime(updatedDate));
         hideEndTimePicker();
     };
