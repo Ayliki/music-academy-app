@@ -233,6 +233,28 @@ const AddIndividualLessonModal: React.FC<AddLessonModalProps> = ({date, visible,
         try {
             const formattedDate = formatDate(date);
 
+            // Проверка на конфликт занятий у выбранного учителя на указанную дату
+            const teacherLessonsQuery = query(
+                collection(db, 'lessons'),
+                where('teacherId', '==', selectedTeacher),
+                where('date', '==', formattedDate)
+            );
+            const teacherLessonsSnapshot = await getDocs(teacherLessonsQuery);
+            const teacherConflict = teacherLessonsSnapshot.docs.some(doc => {
+                const lesson = doc.data();
+                if (!lesson.timeStart || !lesson.timeEnd) {
+                    return false;
+                }
+                const existingStart = parseTimeToMinutes(lesson.timeStart);
+                const existingEnd = parseTimeToMinutes(lesson.timeEnd);
+                return startMinutes < existingEnd && endMinutes > existingStart;
+            });
+            if (teacherConflict) {
+                Alert.alert('Ошибка', 'У выбранного учителя уже запланировано занятие на это время');
+                setLoading(false);
+                return;
+            }
+
             // Проверка на конфликт занятий в этом кабинете на сегодня в указанное время
             const lessonsQuery = query(
                 collection(db, 'lessons'),

@@ -222,14 +222,14 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({date, visible, onCl
         try {
             const formattedDate = formatDate(date);
 
-            // Проверка на конфликт занятий в выбранном кабинете на указанную дату
-            const lessonsQuery = query(
+            // Проверка на конфликт занятий у выбранного учителя на указанную дату
+            const teacherLessonsQuery = query(
                 collection(db, 'lessons'),
-                where('roomId', '==', selectedRoom),
+                where('teacherId', '==', selectedTeacher),
                 where('date', '==', formattedDate)
             );
-            const lessonsSnapshot = await getDocs(lessonsQuery);
-            const conflict = lessonsSnapshot.docs.some(doc => {
+            const teacherLessonsSnapshot = await getDocs(teacherLessonsQuery);
+            const teacherConflict = teacherLessonsSnapshot.docs.some(doc => {
                 const lesson = doc.data();
                 if (!lesson.timeStart || !lesson.timeEnd) {
                     return false;
@@ -238,7 +238,29 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({date, visible, onCl
                 const existingEnd = parseTimeToMinutes(lesson.timeEnd);
                 return startMinutes < existingEnd && endMinutes > existingStart;
             });
-            if (conflict) {
+            if (teacherConflict) {
+                Alert.alert('Ошибка', 'У выбранного учителя уже запланировано занятие на это время');
+                setLoading(false);
+                return;
+            }
+
+            // Проверка на конфликт занятий в выбранном кабинете на указанную дату
+            const lessonsQuery = query(
+                collection(db, 'lessons'),
+                where('roomId', '==', selectedRoom),
+                where('date', '==', formattedDate)
+            );
+            const lessonsSnapshot = await getDocs(lessonsQuery);
+            const roomConflict = lessonsSnapshot.docs.some(doc => {
+                const lesson = doc.data();
+                if (!lesson.timeStart || !lesson.timeEnd) {
+                    return false;
+                }
+                const existingStart = parseTimeToMinutes(lesson.timeStart);
+                const existingEnd = parseTimeToMinutes(lesson.timeEnd);
+                return startMinutes < existingEnd && endMinutes > existingStart;
+            });
+            if (roomConflict) {
                 Alert.alert('Ошибка', 'На это время уже запланировано занятие в этом кабинете');
                 setLoading(false);
                 return;
