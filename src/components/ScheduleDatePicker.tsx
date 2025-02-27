@@ -1,17 +1,34 @@
-import React from "react";
-import { View, ScrollView, TouchableOpacity, Text, StyleSheet } from "react-native";
+import React, {useRef, useEffect} from "react";
+import {View, ScrollView, TouchableOpacity, Text, StyleSheet} from "react-native";
 
 type ScheduleDatePickerProps = {
     dateOptions: string[];
     selectedDay: string;
     onSelectDay: (day: string) => void;
+    initialIndex: number;
 };
 
-const ScheduleDatePicker: React.FC<ScheduleDatePickerProps> = ({ dateOptions, selectedDay, onSelectDay }) => {
+const ITEM_WIDTH = 70;
+
+const ScheduleDatePicker: React.FC<ScheduleDatePickerProps> = (
+    {
+        dateOptions,
+        selectedDay,
+        onSelectDay,
+        initialIndex,
+    }) => {
+    const scrollViewRef = useRef<ScrollView>(null);
+
+    useEffect(() => {
+        if (scrollViewRef.current) {
+            scrollViewRef.current.scrollTo({x: initialIndex * ITEM_WIDTH, animated: false});
+        }
+    }, [initialIndex]);
 
     return (
         <View>
             <ScrollView
+                ref={scrollViewRef}
                 horizontal
                 showsHorizontalScrollIndicator={false}
                 style={styles.scrollView}
@@ -19,7 +36,7 @@ const ScheduleDatePicker: React.FC<ScheduleDatePickerProps> = ({ dateOptions, se
             >
                 {dateOptions.map((item, index) => {
                     const isSelected = selectedDay === item;
-                    const [weekday, dayNumber] = item.split(" ");
+                    const [weekday, dayNumber] = item.split(' ');
                     return (
                         <TouchableOpacity
                             key={index}
@@ -37,7 +54,6 @@ const ScheduleDatePicker: React.FC<ScheduleDatePickerProps> = ({ dateOptions, se
                 })}
             </ScrollView>
         </View>
-
     );
 };
 

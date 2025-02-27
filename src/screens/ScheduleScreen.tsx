@@ -23,12 +23,16 @@ interface DateOption {
     display: string;
 }
 
-const generateDateOptions = (baseDate: Date): DateOption[] => {
+/**
+ * Генерирует массив опций дат.
+ * Опции создаются относительно baseDate: от (baseDate - rangeBefore) до (baseDate + rangeAfter)
+ */
+const generateDateOptions = (baseDate: Date, rangeBefore: number, rangeAfter: number): DateOption[] => {
     const options: DateOption[] = [];
-    for (let i = 0; i < 20; i++) {
+    for (let i = -rangeBefore; i <= rangeAfter; i++) {
         const d = new Date(baseDate);
         d.setDate(baseDate.getDate() + i);
-        const iso = d.toISOString().split('T')[0]; // ГГГГ-ММ-ДД
+        const iso = d.toISOString().split('T')[0]; // формат ГГГГ-ММ-ДД
         const display = d
             .toLocaleDateString('ru-RU', {weekday: 'short', day: 'numeric', month: 'long'})
             .replace(/[.,]/g, '')
@@ -46,14 +50,18 @@ const ScheduleScreen: React.FC = () => {
     const [isAddIndividualLessonModalVisible, setIsAddIndividualLessonModalVisible] = useState(false);
 
     const today = new Date();
-    const dateOptions = generateDateOptions(today);
+    const todayIso = today.toISOString().split('T')[0];
 
-    // Храним выбранную дату в формате ISO (ГГГГ-ММ-ДД)
-    const [selectedDateIso, setSelectedDateIso] = useState(dateOptions[0].iso);
+    // anchorDate определяет, относительно какой даты генерируются опции
+    const [anchorDate, setAnchorDate] = useState(today);
+    // Выбранная дата (по умолчанию – сегодня)
+    const [selectedDateIso, setSelectedDateIso] = useState(todayIso);
+
+    // Генерируем опции относительно anchorDate (10 дней до и 10 дней после)
+    const dateOptions = generateDateOptions(anchorDate, 10, 10);
 
     const selectedDate = new Date(selectedDateIso);
-
-    // Фильтруем уроки по полю date (предполагается, что на бэкенде дата хранится в формате ГГГГ-ММ-ДД)
+    // Фильтруем уроки по выбранной дате
     const filteredLessons = lessons.filter((lesson: Lesson) => lesson.date === selectedDateIso);
 
     const handleConfirm = async (lesson: Lesson) => {
@@ -61,7 +69,7 @@ const ScheduleScreen: React.FC = () => {
             const lessonRef = doc(db, 'lessons', lesson.id);
             await setDoc(lessonRef, {confirmed: true}, {merge: true});
             setLessons((prevLessons: Lesson[]) =>
-                prevLessons.map((l) => (l.id === lesson.id ? {...l, confirmed: true} : l))
+                prevLessons.map(l => (l.id === lesson.id ? {...l, confirmed: true} : l))
             );
             console.log('Lesson confirmed:', lesson.id);
         } catch (error) {
@@ -74,7 +82,7 @@ const ScheduleScreen: React.FC = () => {
             const lessonRef = doc(db, 'lessons', lesson.id);
             await setDoc(lessonRef, {confirmed: false}, {merge: true});
             setLessons((prevLessons: Lesson[]) =>
-                prevLessons.map((l) => (l.id === lesson.id ? {...l, confirmed: false} : l))
+                prevLessons.map(l => (l.id === lesson.id ? {...l, confirmed: false} : l))
             );
             console.log('Lesson cancelled:', lesson.id);
         } catch (error) {
@@ -87,11 +95,15 @@ const ScheduleScreen: React.FC = () => {
             <View style={{flex: 1}}>
                 <ScheduleHeader
                     selectedDate={selectedDate}
-                    onTodayPress={() => setSelectedDateIso(dateOptions[0].iso)}
+                    onTodayPress={() => {
+                        setSelectedDateIso(todayIso);
+                        setAnchorDate(today);
+                    }}
                 />
                 <ScheduleDatePicker
-                    // Передаём массив отображаемых строк для выбора даты
+                    // Передаём отформатированные строки дат
                     dateOptions={dateOptions.map(option => option.display)}
+                    // Отмечаем выбранный день по его отображаемой строке
                     selectedDay={
                         dateOptions.find(option => option.iso === selectedDateIso)?.display || ''
                     }
@@ -99,8 +111,12 @@ const ScheduleScreen: React.FC = () => {
                         const option = dateOptions.find(o => o.display === selectedDisplay);
                         if (option) {
                             setSelectedDateIso(option.iso);
+                            // При выборе даты обновляем anchorDate, чтобы генерировать новые опции
+                            setAnchorDate(new Date(option.iso));
                         }
                     }}
+                    // Передаём индекс, на который нужно прокрутить (выбранная дата всегда в центре)
+                    initialIndex={10}
                 />
                 <ScheduleTable
                     lessons={filteredLessons}
@@ -127,7 +143,6 @@ const ScheduleScreen: React.FC = () => {
                 </View>
             )}
 
-            {/* Передаём в модальные окна выбранную дату, преобразованную в объект Date */}
             {role === 'administrator' && (
                 <AddGroupLessonModal
                     visible={isAddGroupLessonModalVisible}
