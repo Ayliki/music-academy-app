@@ -64,6 +64,18 @@ const styles = StyleSheet.create({
         color: '#fff',
         marginBottom: 4,
     },
+    groupText: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#fff',
+        marginBottom: 4,
+    },
+    studentText: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: '#fff',
+        marginBottom: 4,
+    },
     actionsContainer: {
         flexDirection: 'row',
         justifyContent: 'space-around',

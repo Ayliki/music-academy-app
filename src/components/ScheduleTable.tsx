@@ -7,7 +7,8 @@ import {db} from '../services/firebaseConfig';
 export type Lesson = {
     id: string;
     lessonId: string;
-    groupId: string;
+    groupId?: string;       // Если занятие групповое, это поле заполнено
+    studentId?: string;     // Если занятие индивидуальное, это поле заполнено
     roomId: string;
     subjectId: string;
     teacherId: string;
@@ -32,9 +33,10 @@ type RoomMapping = {
 const ScheduleTable: React.FC<ScheduleTableProps> = ({lessons, onConfirm, onCancel}) => {
     // Словари для сопоставления ID с именами
     const [subjectsMap, setSubjectsMap] = useState<{ [key: string]: string }>({});
-    // Теперь roomsMap хранит объект с именем и цветом
     const [roomsMap, setRoomsMap] = useState<{ [key: string]: RoomMapping }>({});
     const [teachersMap, setTeachersMap] = useState<{ [key: string]: string }>({});
+    const [groupsMap, setGroupsMap] = useState<{ [key: string]: string }>({});
+    const [studentsMap, setStudentsMap] = useState<{ [key: string]: string }>({});
 
     useEffect(() => {
         const fetchMappings = async () => {
@@ -48,12 +50,11 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({lessons, onConfirm, onCanc
                 });
                 setSubjectsMap(subjects);
 
-                // Получение кабинетов: сохраняем и имя, и цвет (room.color)
+                // Получение кабинетов (имя и цвет)
                 const roomsSnapshot = await getDocs(collection(db, 'rooms'));
                 const rooms: { [key: string]: RoomMapping } = {};
                 roomsSnapshot.forEach(doc => {
                     const data = doc.data();
-                    // Предполагается, что в документе есть поля name и color
                     rooms[doc.id] = {name: data.name, color: data.color};
                 });
                 setRoomsMap(rooms);
@@ -63,10 +64,27 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({lessons, onConfirm, onCanc
                 const teachers: { [key: string]: string } = {};
                 teachersSnapshot.forEach(doc => {
                     const data = doc.data();
-                    // Формируем полное имя преподавателя (например, "Иванов Иван")
                     teachers[doc.id] = `${data.lastName || ''} ${data.firstName || ''} ${data.middleName || ''}`.trim();
                 });
                 setTeachersMap(teachers);
+
+                // Получение групп
+                const groupsSnapshot = await getDocs(collection(db, 'groups'));
+                const groups: { [key: string]: string } = {};
+                groupsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    groups[doc.id] = data.name;
+                });
+                setGroupsMap(groups);
+
+                // Получение учеников
+                const studentsSnapshot = await getDocs(collection(db, 'students'));
+                const students: { [key: string]: string } = {};
+                studentsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    students[doc.id] = `${data.lastName || ''} ${data.firstName || ''}`.trim();
+                });
+                setStudentsMap(students);
             } catch (error) {
                 console.error("Error fetching mappings: ", error);
             }
@@ -104,6 +122,18 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({lessons, onConfirm, onCanc
                                 <Text style={styles.lessonName}>{subjectName}</Text>
                                 <Text style={styles.roomText}>Каб: {roomName}</Text>
                                 <Text style={styles.instructorText}>Преподаватель: {teacherName}</Text>
+                                {/* Отображаем информацию о группе, если groupId заполнено */}
+                                {lesson.groupId && (
+                                    <Text style={styles.groupText}>
+                                        Группа: {groupsMap[lesson.groupId] || lesson.groupId}
+                                    </Text>
+                                )}
+                                {/* Отображаем информацию об ученике, если studentId заполнено */}
+                                {lesson.studentId && (
+                                    <Text style={styles.studentText}>
+                                        Ученик: {studentsMap[lesson.studentId] || lesson.studentId}
+                                    </Text>
+                                )}
                                 {lesson.actions && lesson.confirmed === undefined && (
                                     <View style={styles.actionsContainer}>
                                         <TouchableOpacity
