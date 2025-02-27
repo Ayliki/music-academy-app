@@ -8,12 +8,12 @@ import {
     TouchableWithoutFeedback,
     Keyboard,
     ActivityIndicator,
-    TextInput,
 } from 'react-native';
 import {collection, getDocs, query, where, addDoc} from 'firebase/firestore';
 import {db} from '../../services/firebaseConfig';
 import SingleSelectDropdown from '../SingleSelectDropdown';
 import {styles} from '../../styles/AddGroupLessonModalStyles';
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 
 interface AddLessonModalProps {
     date: Date;
@@ -33,6 +33,9 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({date, visible, onCl
     const [loading, setLoading] = useState(false);
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
+
+    const [isStartTimePickerVisible, setStartTimePickerVisibility] = useState(false);
+    const [isEndTimePickerVisible, setEndTimePickerVisibility] = useState(false);
 
     // Функция для форматирования даты в формат "ГГГГ-ММ-ДД"
     const formatDate = (date: Date) => {
@@ -149,66 +152,45 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({date, visible, onCl
         fetchRooms();
     }, [selectedGroup]);
 
-    // Функция для валидации времени начала
-    const handleStartTimeChange = (input: string) => {
-        const cleanedInput = input.replace(/\D/g, '');
-        if (!cleanedInput) {
-            setStartTime('');
+    // Управление отображением модальных пикеров
+    const showStartTimePicker = () => setStartTimePickerVisibility(true);
+    const hideStartTimePicker = () => setStartTimePickerVisibility(false);
+    const showEndTimePicker = () => setEndTimePickerVisibility(true);
+    const hideEndTimePicker = () => setEndTimePickerVisibility(false);
+
+    // Обработка выбора времени начала занятия
+    const handleConfirmStartTime = (selectedTime: Date) => {
+        const updatedDate = new Date(date);
+        updatedDate.setHours(selectedTime.getHours(), selectedTime.getMinutes());
+        // Если дата сегодня – проверяем, чтобы время не было в прошлом
+        if (date.toDateString() === new Date().toDateString() && updatedDate < new Date()) {
+            Alert.alert('Ошибка', 'Нельзя выбрать прошедшее время');
+            hideStartTimePicker();
             return;
         }
-        let formattedTime = '';
-        if (cleanedInput.length >= 2) {
-            const hours = cleanedInput.substring(0, 2);
-            const hoursNum = parseInt(hours, 10);
-            if (hoursNum > 23) {
-                Alert.alert('Некорректное время', 'Часы не могут быть больше 23');
-                return;
-            }
-            formattedTime = hours;
-        } else {
-            formattedTime = cleanedInput;
-        }
-        if (cleanedInput.length > 2) {
-            const minutes = cleanedInput.length >= 4 ? cleanedInput.substring(2, 4) : cleanedInput.substring(2);
-            const minutesNum = parseInt(minutes, 10);
-            if (minutesNum > 59) {
-                Alert.alert('Некорректное время', 'Минуты не могут быть больше 59');
-                return;
-            }
-            formattedTime += ':' + minutes;
-        }
-        setStartTime(formattedTime);
+        setStartTime(formatTime(updatedDate));
+        hideStartTimePicker();
     };
 
-    // Функция для валидации времени окончания
-    const handleEndTimeChange = (input: string) => {
-        const cleanedInput = input.replace(/\D/g, '');
-        if (!cleanedInput) {
-            setEndTime('');
+    // Обработка выбора времени конца занятия
+    const handleConfirmEndTime = (selectedTime: Date) => {
+        const updatedDate = new Date(date);
+        updatedDate.setHours(selectedTime.getHours(), selectedTime.getMinutes());
+        // Если дата сегодня – проверяем, чтобы время не было в прошлом
+        if (date.toDateString() === new Date().toDateString() && updatedDate < new Date()) {
+            Alert.alert('Ошибка', 'Нельзя выбрать прошедшее время');
+            hideEndTimePicker();
             return;
         }
-        let formattedTime = '';
-        if (cleanedInput.length >= 2) {
-            const hours = cleanedInput.substring(0, 2);
-            const hoursNum = parseInt(hours, 10);
-            if (hoursNum > 23) {
-                Alert.alert('Некорректное время', 'Часы не могут быть больше 23');
-                return;
-            }
-            formattedTime = hours;
-        } else {
-            formattedTime = cleanedInput;
-        }
-        if (cleanedInput.length > 2) {
-            const minutes = cleanedInput.length >= 4 ? cleanedInput.substring(2, 4) : cleanedInput.substring(2);
-            const minutesNum = parseInt(minutes, 10);
-            if (minutesNum > 59) {
-                Alert.alert('Некорректное время', 'Минуты не могут быть больше 59');
-                return;
-            }
-            formattedTime += ':' + minutes;
-        }
-        setEndTime(formattedTime);
+        setEndTime(formatTime(updatedDate));
+        hideEndTimePicker();
+    };
+
+    // Форматирование времени в формат HH:mm
+    const formatTime = (date: Date) => {
+        const hours = ("0" + date.getHours()).slice(-2);
+        const minutes = ("0" + date.getMinutes()).slice(-2);
+        return `${hours}:${minutes}`;
     };
 
     // Функция для сохранения данных
@@ -344,25 +326,43 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({date, visible, onCl
 
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>Время начала (ЧЧ:ММ):</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="14:00"
-                                placeholderTextColor="#888"
-                                value={startTime}
-                                onChangeText={handleStartTimeChange}
-                                keyboardType="number-pad"
+                            <TouchableOpacity onPress={showStartTimePicker} style={styles.input}>
+                                <Text style={{color: '#000'}}>
+                                    {startTime ? startTime : formatTime(date)}
+                                </Text>
+                            </TouchableOpacity>
+                            <DateTimePickerModal
+                                isVisible={isStartTimePickerVisible}
+                                mode="time"
+                                onConfirm={handleConfirmStartTime}
+                                onCancel={hideStartTimePicker}
+                                confirmTextIOS={"Подтвердить"}
+                                cancelTextIOS={"Отменить"}
+                                pickerContainerStyleIOS={{
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}
                             />
                         </View>
 
                         <View style={styles.inputGroup}>
                             <Text style={styles.label}>Время окончания (ЧЧ:ММ):</Text>
-                            <TextInput
-                                style={styles.input}
-                                placeholder="14:00"
-                                placeholderTextColor="#888"
-                                value={endTime}
-                                onChangeText={handleEndTimeChange}
-                                keyboardType="number-pad"
+                            <TouchableOpacity onPress={showEndTimePicker} style={styles.input}>
+                                <Text style={{color: '#000'}}>
+                                    {endTime ? endTime : formatTime(date)}
+                                </Text>
+                            </TouchableOpacity>
+                            <DateTimePickerModal
+                                isVisible={isEndTimePickerVisible}
+                                mode="time"
+                                onConfirm={handleConfirmEndTime}
+                                onCancel={hideEndTimePicker}
+                                confirmTextIOS={"Подтвердить"}
+                                cancelTextIOS={"Отменить"}
+                                pickerContainerStyleIOS={{
+                                    justifyContent: 'center',
+                                    alignItems: 'center',
+                                }}
                             />
                         </View>
 
