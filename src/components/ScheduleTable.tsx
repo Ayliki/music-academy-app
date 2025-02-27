@@ -1,8 +1,8 @@
-import React, {useState, useEffect} from 'react';
-import {View, Text, ScrollView, TouchableOpacity} from "react-native";
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, TouchableOpacity } from "react-native";
 import styles from '../styles/ScheduleTableStyles';
-import {collection, getDocs} from 'firebase/firestore';
-import {db} from '../services/firebaseConfig';
+import { collection, getDocs } from 'firebase/firestore';
+import { db } from '../services/firebaseConfig';
 
 export type Lesson = {
     id: string;
@@ -30,7 +30,7 @@ type RoomMapping = {
     color: string;
 };
 
-const ScheduleTable: React.FC<ScheduleTableProps> = ({lessons, onConfirm, onCancel}) => {
+const ScheduleTable: React.FC<ScheduleTableProps> = ({ lessons, onConfirm, onCancel }) => {
     // Словари для сопоставления ID с именами
     const [subjectsMap, setSubjectsMap] = useState<{ [key: string]: string }>({});
     const [roomsMap, setRoomsMap] = useState<{ [key: string]: RoomMapping }>({});
@@ -55,7 +55,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({lessons, onConfirm, onCanc
                 const rooms: { [key: string]: RoomMapping } = {};
                 roomsSnapshot.forEach(doc => {
                     const data = doc.data();
-                    rooms[doc.id] = {name: data.name, color: data.color};
+                    rooms[doc.id] = { name: data.name, color: data.color };
                 });
                 setRoomsMap(rooms);
 
@@ -93,12 +93,23 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({lessons, onConfirm, onCanc
         fetchMappings();
     }, []);
 
+    // Функция для преобразования строки времени HH:MM в число (минуты)
+    const parseTimeToMinutes = (timeStr: string): number => {
+        const [hours, minutes] = timeStr.split(':').map(Number);
+        return hours * 60 + minutes;
+    };
+
+    // Сортируем занятия по времени старта
+    const sortedLessons = [...lessons].sort(
+        (a, b) => parseTimeToMinutes(a.timeStart) - parseTimeToMinutes(b.timeStart)
+    );
+
     return (
         <ScrollView style={styles.scheduleContainer}>
             <View style={styles.scheduleTable}>
                 <View style={styles.leftColumn}>
                     <Text style={styles.columnHeader}>Время</Text>
-                    {lessons.map((lesson, index) => (
+                    {sortedLessons.map((lesson, index) => (
                         <View key={index} style={styles.timeRow}>
                             <Text style={styles.startTime}>{lesson.timeStart}</Text>
                             <Text style={styles.endTime}>{lesson.timeEnd}</Text>
@@ -107,7 +118,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({lessons, onConfirm, onCanc
                 </View>
                 <View style={styles.rightColumn}>
                     <Text style={styles.columnHeader}>Занятие</Text>
-                    {lessons.map((lesson, index) => {
+                    {sortedLessons.map((lesson, index) => {
                         // Получаем название предмета
                         const subjectName = subjectsMap[lesson.subjectId] || lesson.subjectId;
                         // Получаем информацию о кабинете: имя и цвет
@@ -118,7 +129,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({lessons, onConfirm, onCanc
                         const teacherName = teachersMap[lesson.teacherId] || lesson.teacherId;
 
                         return (
-                            <View key={index} style={[styles.lessonCard, {backgroundColor: roomColor}]}>
+                            <View key={index} style={[styles.lessonCard, { backgroundColor: roomColor }]}>
                                 <Text style={styles.lessonName}>{subjectName}</Text>
                                 <Text style={styles.roomText}>Каб: {roomName}</Text>
                                 <Text style={styles.instructorText}>Преподаватель: {teacherName}</Text>
