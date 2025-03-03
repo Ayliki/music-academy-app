@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {SafeAreaView, StyleSheet, ScrollView, Alert,} from 'react-native';
+import {SafeAreaView, StyleSheet, ScrollView} from 'react-native';
 import Header from '../components/Header';
 import SignupForm from '../components/SignUp/SignupForm';
 import SignUpFormValues from '../components/SignUp/SignUpFormValues';
@@ -38,6 +38,7 @@ const SignUpScreen: React.FC = () => {
     const handleSignUp = async (values: SignUpFormValues) => {
         try {
             setSignupData(values);
+            setIsCodeStep(true);
 
             await createUserWithEmailAndPassword(auth, values.email, 'someplaceholderpassword');
             setTempEmail(values.email);
@@ -75,18 +76,6 @@ const SignUpScreen: React.FC = () => {
 
         } catch (error: any) {
             console.error('SignUp Error:', error);
-            if (error.code === 'auth/email-already-in-use') {
-                Alert.alert(
-                    'Пользователь уже существует',
-                    'Пользователь с такой почтой уже зарегистрирован. Хотите войти?',
-                    [
-                        {text: 'Отмена', style: 'cancel'},
-                        {text: 'Войти', onPress: () => navigation.navigate('Login')},
-                    ]
-                );
-            } else {
-                Alert.alert('Ошибка при регистрации', error.message);
-            }
         }
     };
 
