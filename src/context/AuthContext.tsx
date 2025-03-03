@@ -3,13 +3,20 @@ import {auth, db} from '../services/firebaseConfig';
 import {onAuthStateChanged, User as FirebaseAuthUser} from 'firebase/auth';
 import {doc, onSnapshot, Unsubscribe} from 'firebase/firestore';
 
-type Role = 'default' | 'teacher' | 'administrator' | null;
+interface UserData {
+    id: string;
+    role: string;
+    confirmed?: boolean;
+    codeVerified?: boolean;
+    groupId?: string;
+}
 
 interface AuthContextType {
-    user: FirebaseAuthUser | null;
+    firebaseUser: FirebaseAuthUser | null;
+    dbUser: UserData | null;
     loading: boolean;
-    role: Role;
-    setRole: (role: Role) => void;
+    role: string | null;
+    setRole: (role: string | null) => void;
     confirmed: boolean | null;
     setConfirmed: (confirmed: boolean) => void;
     codeVerified: boolean;
@@ -23,39 +30,39 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
-    const [user, setUser] = useState<FirebaseAuthUser | null>(null);
+    const [firebaseUser, setFirebaseUser] = useState<FirebaseAuthUser | null>(null);
+    const [dbUser, setDbUser] = useState<UserData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [role, setRole] = useState<Role>(null);
+    const [role, setRole] = useState<string | null>(null);
     const [confirmed, setConfirmed] = useState<boolean | null>(null);
     const [codeVerified, setCodeVerified] = useState<boolean>(false);
 
     useEffect(() => {
         let unsubscribe: Unsubscribe | undefined;
         const unsubscribeAuth = onAuthStateChanged(auth, (authenticatedUser) => {
-            setUser(authenticatedUser);
-
+            setFirebaseUser(authenticatedUser);
             if (authenticatedUser) {
                 const userDocRef = doc(db, 'users', authenticatedUser.email?.toLowerCase() || '');
                 unsubscribe = onSnapshot(userDocRef, (docSnap) => {
                     if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        console.log('Fetched role:', data.role);
+                        const data = docSnap.data() as UserData;
+                        setDbUser(data);
                         setRole(data.role || 'default');
                         setConfirmed(data.confirmed ?? false);
                         setCodeVerified(data.codeVerified ?? false);
                     } else {
+                        setDbUser(null);
                         setRole('default');
                         setConfirmed(false);
                         setCodeVerified(false);
-                        console.log('No user document found. Default role set.');
                     }
                 });
             } else {
+                setDbUser(null);
                 setRole(null);
                 setConfirmed(null);
                 setCodeVerified(false);
             }
-
             setLoading(false);
         });
 
@@ -67,7 +74,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
 
     return (
         <AuthContext.Provider
-            value={{user, loading, role, setRole, confirmed, setConfirmed, codeVerified, setCodeVerified}}>
+            value={{
+                firebaseUser,
+                dbUser,
+                loading,
+                role,
+                setRole,
+                confirmed,
+                setConfirmed,
+                codeVerified,
+                setCodeVerified,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );
@@ -79,12 +97,4 @@ export const useAuth = () => {
         throw new Error('useAuth must be used within an AuthProvider');
     }
     return context;
-};
-
-export const useRoleFlags = () => {
-    const {role} = useAuth();
-    return {
-        isTeacher: role === 'teacher',
-        isAdmin: role === 'administrator',
-    };
 };

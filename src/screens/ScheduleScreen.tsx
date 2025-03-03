@@ -43,7 +43,7 @@ const generateDateOptions = (baseDate: Date, rangeBefore: number, rangeAfter: nu
 const ScheduleScreen: React.FC = () => {
     const {lessons, setLessons} = useLessons();
     const navigation = useNavigation<NavigationProps>();
-    const {role} = useAuth();
+    const {dbUser, role} = useAuth();
     const [isAddGroupLessonModalVisible, setIsAddGroupLessonModalVisible] = useState(false);
     const [isAddIndividualLessonModalVisible, setIsAddIndividualLessonModalVisible] = useState(false);
 
@@ -60,7 +60,20 @@ const ScheduleScreen: React.FC = () => {
 
     const selectedDate = new Date(selectedDateIso);
     // Фильтруем уроки по выбранной дате
-    const filteredLessons = lessons.filter((lesson: Lesson) => lesson.date === selectedDateIso);
+    const filteredLessons = lessons.filter((lesson: Lesson) => {
+        if (lesson.date !== selectedDateIso) return false;
+
+        if (role === 'administrator') {
+            return true;
+        }
+        if (role === 'teacher' && dbUser) {
+            return lesson.teacherId === dbUser.id;
+        }
+        if (role === 'default' && dbUser) {
+            return lesson.groupId === dbUser.groupId || lesson.studentId === dbUser.id;
+        }
+        return false;
+    });
 
     const handleConfirmByStudent = async (lesson: Lesson) => {
         try {
@@ -126,7 +139,7 @@ const ScheduleScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <View style={{ flex: 1 }}>
+            <View style={{flex: 1}}>
                 <ScheduleHeader
                     selectedDate={selectedDate}
                     onTodayPress={() => {
