@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity } from "react-native";
+import React, {useEffect, useState} from 'react';
+import {ScrollView, Text, TouchableOpacity, View} from "react-native";
 import styles from '../styles/ScheduleTableStyles';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../services/firebaseConfig';
+import {collection, getDocs} from 'firebase/firestore';
+import {db} from '../services/firebaseConfig';
+import {useAuth} from '../context/AuthContext';
+import {IndividualLessonStatus} from "../types/IndividualLessonStatus";
 
 export type Lesson = {
     id: string;
@@ -17,12 +19,14 @@ export type Lesson = {
     confirmed?: boolean;
     actions?: boolean;
     date: string;
+    status: IndividualLessonStatus;
 };
 
 type ScheduleTableProps = {
     lessons: Lesson[];
     onConfirm: (lesson: Lesson) => void;
     onCancel: (lesson: Lesson) => void;
+    onStudentPaid: (lesson: Lesson) => void; // Добавлен новый пропс для админа
 };
 
 type RoomMapping = {
@@ -30,13 +34,15 @@ type RoomMapping = {
     color: string;
 };
 
-const ScheduleTable: React.FC<ScheduleTableProps> = ({ lessons, onConfirm, onCancel }) => {
+const ScheduleTable: React.FC<ScheduleTableProps> = ({lessons, onConfirm, onCancel, onStudentPaid}) => {
     // Словари для сопоставления ID с именами
     const [subjectsMap, setSubjectsMap] = useState<{ [key: string]: string }>({});
     const [roomsMap, setRoomsMap] = useState<{ [key: string]: RoomMapping }>({});
     const [teachersMap, setTeachersMap] = useState<{ [key: string]: string }>({});
     const [groupsMap, setGroupsMap] = useState<{ [key: string]: string }>({});
     const [studentsMap, setStudentsMap] = useState<{ [key: string]: string }>({});
+
+    const {role} = useAuth();
 
     useEffect(() => {
         const fetchMappings = async () => {
@@ -55,7 +61,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({ lessons, onConfirm, onCan
                 const rooms: { [key: string]: RoomMapping } = {};
                 roomsSnapshot.forEach(doc => {
                     const data = doc.data();
-                    rooms[doc.id] = { name: data.name, color: data.color };
+                    rooms[doc.id] = {name: data.name, color: data.color};
                 });
                 setRoomsMap(rooms);
 
@@ -121,31 +127,37 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({ lessons, onConfirm, onCan
                     {sortedLessons.map((lesson, index) => {
                         // Получаем название предмета
                         const subjectName = subjectsMap[lesson.subjectId] || lesson.subjectId;
+
                         // Получаем информацию о кабинете: имя и цвет
                         const roomData = roomsMap[lesson.roomId];
                         const roomName = roomData ? roomData.name : lesson.roomId;
                         const roomColor = roomData ? roomData.color : 'gray';
+
                         // Получаем имя преподавателя
                         const teacherName = teachersMap[lesson.teacherId] || lesson.teacherId;
 
                         return (
-                            <View key={index} style={[styles.lessonCard, { backgroundColor: roomColor }]}>
+                            <View key={index} style={[styles.lessonCard, {backgroundColor: roomColor}]}>
                                 <Text style={styles.lessonName}>{subjectName}</Text>
                                 <Text style={styles.roomText}>Каб: {roomName}</Text>
                                 <Text style={styles.instructorText}>Преподаватель: {teacherName}</Text>
+
                                 {/* Отображаем информацию о группе, если groupId заполнено */}
                                 {lesson.groupId && (
                                     <Text style={styles.groupText}>
                                         Группа: {groupsMap[lesson.groupId] || lesson.groupId}
                                     </Text>
                                 )}
+
                                 {/* Отображаем информацию об ученике, если studentId заполнено */}
                                 {lesson.studentId && (
                                     <Text style={styles.studentText}>
                                         Ученик: {studentsMap[lesson.studentId] || lesson.studentId}
                                     </Text>
                                 )}
-                                {lesson.actions && lesson.confirmed === undefined && (
+
+                                {/* Отображаем кнопки "Подтвердить" и "Отклонить" для ученика */}
+                                {role === "default" && lesson.status === IndividualLessonStatus.WaitForConfirmation && (
                                     <View style={styles.actionsContainer}>
                                         <TouchableOpacity
                                             style={styles.confirmButton}
@@ -161,11 +173,37 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({ lessons, onConfirm, onCan
                                         </TouchableOpacity>
                                     </View>
                                 )}
-                                {lesson.confirmed === true && (
-                                    <Text style={styles.confirmedText}>Подтверждено</Text>
+
+                                {/* Отображаем статус "Подтверждено" */}
+                                {lesson.status === IndividualLessonStatus.Confirmed && (
+                                    <Text style={styles.statusPositive}>Подтверждено</Text>
                                 )}
-                                {lesson.confirmed === false && (
-                                    <Text style={styles.canceledText}>Отменено</Text>
+
+                                {/* Отображаем статус "Отменено" */}
+                                {lesson.status === IndividualLessonStatus.Canceled && (
+                                    <Text style={styles.statusNegative}>Отменено</Text>
+                                )}
+
+                                {/* Отображаем статус "Отменено, но нуждается в оплате" */}
+                                {lesson.status === IndividualLessonStatus.CanceledNeedsPayment && (
+                                    <Text style={styles.statusNegative}>Отменено, но нуждается в оплате</Text>
+                                )}
+
+                                {/* Отображаем кнопку "Оплатить" для админа */}
+                                {role == "administrator" && lesson.status == IndividualLessonStatus.CanceledNeedsPayment && (
+                                    <View style={styles.actionsContainer}>
+                                        <TouchableOpacity
+                                            style={styles.confirmButton}
+                                            onPress={() => onStudentPaid(lesson)}
+                                        >
+                                            <Text style={styles.actionButtonText}>Ученик оплатил</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                )}
+
+                                {/* Отображаем статус "Отменено, но оплачено" */}
+                                {lesson.status === IndividualLessonStatus.CanceledPaid && (
+                                    <Text style={styles.statusNegative}>Отменено, но оплачено</Text>
                                 )}
                             </View>
                         );

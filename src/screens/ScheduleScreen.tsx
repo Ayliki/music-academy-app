@@ -1,22 +1,24 @@
-import React, { useState } from 'react';
+import React, {useState} from 'react';
 import {
     SafeAreaView,
     StyleSheet,
     View,
     Text,
     TouchableOpacity,
+    Alert,
 } from 'react-native';
-import { doc, setDoc } from 'firebase/firestore';
-import { useNavigation } from '@react-navigation/native';
-import { NavigationProps } from 'src/navigation/types';
-import { useLessons } from '../hooks/useLessons';
+import {doc, setDoc, updateDoc} from 'firebase/firestore';
+import {useNavigation} from '@react-navigation/native';
+import {NavigationProps} from 'src/navigation/types';
+import {useLessons} from '../hooks/useLessons';
 import ScheduleHeader from '../components/ScheduleHeader';
 import ScheduleDatePicker from '../components/ScheduleDatePicker';
-import ScheduleTable, { Lesson } from '../components/ScheduleTable';
-import { db } from '../services/firebaseConfig';
-import { useAuth } from 'src/context/AuthContext';
+import ScheduleTable, {Lesson} from '../components/ScheduleTable';
+import {db} from '../services/firebaseConfig';
+import {useAuth} from 'src/context/AuthContext';
 import AddGroupLessonModal from "../components/admin/AddGroupLessonModal";
 import AddIndividualLessonModal from "../components/admin/AddIndividualLessonModal";
+import {IndividualLessonStatus} from "../types/IndividualLessonStatus";
 
 interface DateOption {
     iso: string;
@@ -30,18 +32,18 @@ const generateDateOptions = (baseDate: Date, rangeBefore: number, rangeAfter: nu
         d.setDate(baseDate.getDate() + i);
         const iso = d.toISOString().split('T')[0]; // формат ГГГГ-ММ-ДД
         const display = d
-            .toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'long' })
+            .toLocaleDateString('ru-RU', {weekday: 'short', day: 'numeric', month: 'long'})
             .replace(/[.,]/g, '')
             .trim();
-        options.push({ iso, display });
+        options.push({iso, display});
     }
     return options;
 };
 
 const ScheduleScreen: React.FC = () => {
-    const { lessons, setLessons } = useLessons();
+    const {lessons, setLessons} = useLessons();
     const navigation = useNavigation<NavigationProps>();
-    const { role } = useAuth();
+    const {role} = useAuth();
     const [isAddGroupLessonModalVisible, setIsAddGroupLessonModalVisible] = useState(false);
     const [isAddIndividualLessonModalVisible, setIsAddIndividualLessonModalVisible] = useState(false);
 
@@ -60,29 +62,65 @@ const ScheduleScreen: React.FC = () => {
     // Фильтруем уроки по выбранной дате
     const filteredLessons = lessons.filter((lesson: Lesson) => lesson.date === selectedDateIso);
 
-    const handleConfirm = async (lesson: Lesson) => {
+    const handleConfirmByStudent = async (lesson: Lesson) => {
         try {
             const lessonRef = doc(db, 'lessons', lesson.id);
-            await setDoc(lessonRef, { confirmed: true }, { merge: true });
+
+            await setDoc(lessonRef, {status: IndividualLessonStatus.Confirmed.toString()}, {merge: true});
             setLessons((prevLessons: Lesson[]) =>
-                prevLessons.map(l => (l.id === lesson.id ? { ...l, confirmed: true } : l))
+                prevLessons.map(l => (l.id === lesson.id ? {...l, confirmed: true} : l))
             );
+            Alert.alert("Занятие успешно подтверждено!");
             console.log('Lesson confirmed:', lesson.id);
         } catch (error) {
             console.error('Error confirming lesson:', error);
         }
     };
 
-    const handleCancel = async (lesson: Lesson) => {
+    const handleCancelByStudent = async (lesson: Lesson) => {
         try {
             const lessonRef = doc(db, 'lessons', lesson.id);
-            await setDoc(lessonRef, { confirmed: false }, { merge: true });
-            setLessons((prevLessons: Lesson[]) =>
-                prevLessons.map(l => (l.id === lesson.id ? { ...l, confirmed: false } : l))
-            );
-            console.log('Lesson cancelled:', lesson.id);
+            const now = new Date();
+
+            const lessonStart = new Date(`${lesson.date}T${lesson.timeStart}:00`);
+            const timeDifference = lessonStart.getTime() - now.getTime();
+            const sixHours = 6 * 60 * 60 * 1000; // 6 часов в миллисекундах
+
+            if (timeDifference < sixHours) {
+                await setDoc(lessonRef, {status: IndividualLessonStatus.CanceledNeedsPayment.toString()}, {merge: true});
+                setLessons((prevLessons: Lesson[]) =>
+                    prevLessons.map(l =>
+                        l.id === lesson.id
+                            ? {...l, status: IndividualLessonStatus.CanceledNeedsPayment}
+                            : l
+                    )
+                );
+                Alert.alert('Занятие отменено, но нуждается в оплате, так как отмена произошла слишком поздно');
+                console.log('Lesson cancelled without payment:', lesson.id);
+            } else {
+                await setDoc(lessonRef, {status: IndividualLessonStatus.Canceled.toString()}, {merge: true});
+                setLessons((prevLessons: Lesson[]) =>
+                    prevLessons.map(l =>
+                        l.id === lesson.id
+                            ? {...l, status: IndividualLessonStatus.Canceled}
+                            : l
+                    )
+                );
+                Alert.alert("Занятие успешно отменено!");
+                console.log('Lesson cancelled:', lesson.id);
+            }
         } catch (error) {
             console.error('Error cancelling lesson:', error);
+        }
+    };
+
+    const markLessonAsPaid = async (lesson: Lesson) => {
+        try {
+            const lessonRef = doc(db, 'lessons', lesson.id);
+            await updateDoc(lessonRef, {status: IndividualLessonStatus.CanceledPaid.toString()});
+            console.log(`Урок ${lesson.lessonId} переведен в статус "Отменено, но оплачено"`);
+        } catch (error) {
+            console.error("Ошибка при обновлении статуса урока: ", error);
         }
     };
 
@@ -116,8 +154,9 @@ const ScheduleScreen: React.FC = () => {
                 />
                 <ScheduleTable
                     lessons={filteredLessons}
-                    onConfirm={handleConfirm}
-                    onCancel={handleCancel}
+                    onConfirm={handleConfirmByStudent}
+                    onCancel={handleCancelByStudent}
+                    onStudentPaid={markLessonAsPaid}
                 />
             </View>
 

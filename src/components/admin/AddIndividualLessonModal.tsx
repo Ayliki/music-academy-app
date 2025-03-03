@@ -14,6 +14,7 @@ import {db} from '../../services/firebaseConfig';
 import SingleSelectDropdown from '../SingleSelectDropdown';
 import {styles} from '../../styles/AddGroupLessonModalStyles';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
+import {IndividualLessonStatus} from "../../types/IndividualLessonStatus";
 
 interface AddLessonModalProps {
     date: Date;
@@ -347,6 +348,7 @@ const AddIndividualLessonModal: React.FC<AddLessonModalProps> = ({date, visible,
                 timeStart: startTime,
                 timeEnd: endTime,
                 date: formattedDate,
+                status: IndividualLessonStatus.WaitForConfirmation.toString(),
             };
 
             await addDoc(collection(db, 'lessons'), lessonData);

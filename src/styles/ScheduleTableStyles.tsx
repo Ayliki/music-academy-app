@@ -119,6 +119,28 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         marginTop: 8,
     },
+    statusPositive: {
+        backgroundColor: '#E2FBE3',
+        paddingVertical: 5,
+        paddingHorizontal: 5,
+        borderRadius: 15,
+        flex: 1,
+        marginRight: 8,
+        alignItems: 'center',
+        minWidth: 80,
+    },
+    statusNegative: {
+        backgroundColor: '#E83D3D',
+        paddingVertical: 5,
+        paddingHorizontal: 5,
+        borderRadius: 15,
+        fontWeight: '400',
+        fontSize: 12,
+        flex: 1,
+        marginLeft: 8,
+        alignItems: 'center',
+        minWidth: 80,
+    }
 });
 
 export default styles;

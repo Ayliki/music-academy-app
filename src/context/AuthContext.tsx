@@ -1,7 +1,7 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { auth, db } from '../services/firebaseConfig';
-import { onAuthStateChanged, User as FirebaseAuthUser } from 'firebase/auth';
-import { doc, getDoc, onSnapshot, Unsubscribe } from 'firebase/firestore';
+import React, {createContext, useContext, useState, useEffect, ReactNode} from 'react';
+import {auth, db} from '../services/firebaseConfig';
+import {onAuthStateChanged, User as FirebaseAuthUser} from 'firebase/auth';
+import {doc, onSnapshot, Unsubscribe} from 'firebase/firestore';
 
 type Role = 'default' | 'teacher' | 'administrator' | null;
 
@@ -22,7 +22,7 @@ interface AuthProviderProps {
     children: ReactNode;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
+export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
     const [user, setUser] = useState<FirebaseAuthUser | null>(null);
     const [loading, setLoading] = useState(true);
     const [role, setRole] = useState<Role>(null);
@@ -66,7 +66,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, loading, role, setRole, confirmed, setConfirmed, codeVerified, setCodeVerified }}>
+        <AuthContext.Provider
+            value={{user, loading, role, setRole, confirmed, setConfirmed, codeVerified, setCodeVerified}}>
             {children}
         </AuthContext.Provider>
     );
@@ -81,7 +82,7 @@ export const useAuth = () => {
 };
 
 export const useRoleFlags = () => {
-    const { role } = useAuth();
+    const {role} = useAuth();
     return {
         isTeacher: role === 'teacher',
         isAdmin: role === 'administrator',
