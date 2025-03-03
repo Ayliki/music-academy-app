@@ -1,5 +1,5 @@
-import React, {useRef, useEffect} from "react";
-import {View, ScrollView, TouchableOpacity, Text, StyleSheet} from "react-native";
+import React, { useRef, useEffect, useState } from "react";
+import { View, ScrollView, TouchableOpacity, Text, StyleSheet } from "react-native";
 
 type ScheduleDatePickerProps = {
     dateOptions: string[];
@@ -19,14 +19,20 @@ const ScheduleDatePicker: React.FC<ScheduleDatePickerProps> = (
     }) => {
     const scrollViewRef = useRef<ScrollView>(null);
 
+    const [containerWidth, setContainerWidth] = useState(0);
+
     useEffect(() => {
-        if (scrollViewRef.current) {
-            scrollViewRef.current.scrollTo({x: initialIndex * ITEM_WIDTH, animated: false});
+        const index = dateOptions.findIndex(item => item === selectedDay);
+        if (scrollViewRef.current && index !== -1 && containerWidth > 0) {
+            // Вычисляем смещение так, чтобы выбранный элемент оказался по центру:
+            const offsetX = index * ITEM_WIDTH - containerWidth / 2 + ITEM_WIDTH / 2;
+            scrollViewRef.current.scrollTo({ x: offsetX, animated: true });
         }
-    }, [initialIndex]);
+    }, [selectedDay, dateOptions, containerWidth]);
+
 
     return (
-        <View>
+        <View onLayout={(e) => setContainerWidth(e.nativeEvent.layout.width)}>
             <ScrollView
                 ref={scrollViewRef}
                 horizontal
@@ -61,7 +67,8 @@ export default ScheduleDatePicker;
 
 const styles = StyleSheet.create({
     scrollView: {
-        height: 53,
+        height: 80,
+        padding: 10
     },
     scrollViewContent: {
         height: 53,

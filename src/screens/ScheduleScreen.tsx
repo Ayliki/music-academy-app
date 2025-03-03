@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import {
     SafeAreaView,
     StyleSheet,
@@ -6,15 +6,15 @@ import {
     Text,
     TouchableOpacity,
 } from 'react-native';
-import {doc, setDoc} from 'firebase/firestore';
-import {useNavigation} from '@react-navigation/native';
-import {NavigationProps} from 'src/navigation/types';
-import {useLessons} from '../hooks/useLessons';
+import { doc, setDoc } from 'firebase/firestore';
+import { useNavigation } from '@react-navigation/native';
+import { NavigationProps } from 'src/navigation/types';
+import { useLessons } from '../hooks/useLessons';
 import ScheduleHeader from '../components/ScheduleHeader';
 import ScheduleDatePicker from '../components/ScheduleDatePicker';
-import ScheduleTable, {Lesson} from '../components/ScheduleTable';
-import {db} from '../services/firebaseConfig';
-import {useAuth} from 'src/context/AuthContext';
+import ScheduleTable, { Lesson } from '../components/ScheduleTable';
+import { db } from '../services/firebaseConfig';
+import { useAuth } from 'src/context/AuthContext';
 import AddGroupLessonModal from "../components/admin/AddGroupLessonModal";
 import AddIndividualLessonModal from "../components/admin/AddIndividualLessonModal";
 
@@ -23,10 +23,6 @@ interface DateOption {
     display: string;
 }
 
-/**
- * Генерирует массив опций дат.
- * Опции создаются относительно baseDate: от (baseDate - rangeBefore) до (baseDate + rangeAfter)
- */
 const generateDateOptions = (baseDate: Date, rangeBefore: number, rangeAfter: number): DateOption[] => {
     const options: DateOption[] = [];
     for (let i = -rangeBefore; i <= rangeAfter; i++) {
@@ -34,18 +30,18 @@ const generateDateOptions = (baseDate: Date, rangeBefore: number, rangeAfter: nu
         d.setDate(baseDate.getDate() + i);
         const iso = d.toISOString().split('T')[0]; // формат ГГГГ-ММ-ДД
         const display = d
-            .toLocaleDateString('ru-RU', {weekday: 'short', day: 'numeric', month: 'long'})
+            .toLocaleDateString('ru-RU', { weekday: 'short', day: 'numeric', month: 'long' })
             .replace(/[.,]/g, '')
             .trim();
-        options.push({iso, display});
+        options.push({ iso, display });
     }
     return options;
 };
 
 const ScheduleScreen: React.FC = () => {
-    const {lessons, setLessons} = useLessons();
+    const { lessons, setLessons } = useLessons();
     const navigation = useNavigation<NavigationProps>();
-    const {role} = useAuth();
+    const { role } = useAuth();
     const [isAddGroupLessonModalVisible, setIsAddGroupLessonModalVisible] = useState(false);
     const [isAddIndividualLessonModalVisible, setIsAddIndividualLessonModalVisible] = useState(false);
 
@@ -67,9 +63,9 @@ const ScheduleScreen: React.FC = () => {
     const handleConfirm = async (lesson: Lesson) => {
         try {
             const lessonRef = doc(db, 'lessons', lesson.id);
-            await setDoc(lessonRef, {confirmed: true}, {merge: true});
+            await setDoc(lessonRef, { confirmed: true }, { merge: true });
             setLessons((prevLessons: Lesson[]) =>
-                prevLessons.map(l => (l.id === lesson.id ? {...l, confirmed: true} : l))
+                prevLessons.map(l => (l.id === lesson.id ? { ...l, confirmed: true } : l))
             );
             console.log('Lesson confirmed:', lesson.id);
         } catch (error) {
@@ -80,9 +76,9 @@ const ScheduleScreen: React.FC = () => {
     const handleCancel = async (lesson: Lesson) => {
         try {
             const lessonRef = doc(db, 'lessons', lesson.id);
-            await setDoc(lessonRef, {confirmed: false}, {merge: true});
+            await setDoc(lessonRef, { confirmed: false }, { merge: true });
             setLessons((prevLessons: Lesson[]) =>
-                prevLessons.map(l => (l.id === lesson.id ? {...l, confirmed: false} : l))
+                prevLessons.map(l => (l.id === lesson.id ? { ...l, confirmed: false } : l))
             );
             console.log('Lesson cancelled:', lesson.id);
         } catch (error) {
@@ -92,7 +88,7 @@ const ScheduleScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <View style={{flex: 1}}>
+            <View style={{ flex: 1 }}>
                 <ScheduleHeader
                     selectedDate={selectedDate}
                     onTodayPress={() => {
@@ -116,7 +112,7 @@ const ScheduleScreen: React.FC = () => {
                         }
                     }}
                     // Передаём индекс, на который нужно прокрутить (выбранная дата всегда в центре)
-                    initialIndex={10}
+                    initialIndex={-15}
                 />
                 <ScheduleTable
                     lessons={filteredLessons}
