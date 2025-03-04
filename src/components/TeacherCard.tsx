@@ -12,17 +12,9 @@ type TeacherCardProps = {
     teacher: Teacher;
 };
 
-const teacherImages: { [key: string]: any } = {
-    'teacher1.jpg': require('../../assets/images/teachers/teacher1.png'),
-    'teacher2.jpg': require('../../assets/images/teachers/teacher2.png'),
-    'teacher3.jpg': require('../../assets/images/teachers/teacher3.png'),
-    'teacher4.jpg': require('../../assets/images/teachers/teacher4.png'),
-    'teacher5.jpg': require('../../assets/images/teachers/teacher5.png'),
-};
-
 const TeacherCard: React.FC<TeacherCardProps> = ({teacher}) => {
     const displayName = teacher.name ? teacher.name.trim() : '';
-    const imageSource = teacherImages[teacher.photo] || {uri: teacher.photo};
+    const imageSource = {uri: teacher.photo};
 
     return (
         <View style={styles.card}>

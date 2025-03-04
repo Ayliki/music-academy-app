@@ -7,14 +7,8 @@ interface EventCardProps {
     event: Event;
 }
 
-const eventImages: { [key: string]: any } = {
-    'event1.png': require('../../assets/images/events/event1.png'),
-};
 
 const getImageSource = (image: string) => {
-    if (eventImages.hasOwnProperty(image)) {
-        return eventImages[image];
-    }
     return {uri: image};
 };
 
