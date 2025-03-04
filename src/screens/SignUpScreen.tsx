@@ -56,8 +56,6 @@ const SignUpScreen: React.FC = () => {
                 role: values.isTeacher ? 'teacher' : 'default',
             });
 
-            setIsCodeStep(true);
-
             try {
                 const response = await fetch('https://sendemailcode-xjqcjc5s3a-uc.a.run.app', {
                     method: 'POST',
@@ -65,12 +63,10 @@ const SignUpScreen: React.FC = () => {
                     body: JSON.stringify({email: values.email}),
                 });
                 if (!response.ok) {
-                    setIsCodeStep(false);
                     const errorData = await response.json();
                     console.error('Error sending code:', errorData.error);
                 }
             } catch (error: any) {
-                setIsCodeStep(false);
                 console.error('Error sending code:', error.message);
             }
 
