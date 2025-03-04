@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     },
     deleteIcon: {
         position: 'absolute',
-        top: 160,
+        top: 140,
         right: 8,
         backgroundColor: 'rgba(255,255,255,0.7)',
         borderRadius: 16,
