@@ -37,6 +37,7 @@ let app: FirebaseApp;
 let auth: Auth;
 
 if (!getApps().length) {
+    console.log("API ключ", firebaseConfig.apiKey);
     app = initializeApp(firebaseConfig);
     auth = initializeAuth(app, {
         persistence: getReactNativePersistence(AsyncStorage),

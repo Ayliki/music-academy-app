@@ -67,10 +67,10 @@ const ScheduleScreen: React.FC = () => {
             return true;
         }
         if (role === 'teacher' && dbUser) {
-            return lesson.teacherId === dbUser.id;
+            return lesson.teacherId === dbUser.email;
         }
-        if (role === 'default' && dbUser) {
-            return lesson.groupId === dbUser.groupId || lesson.studentId === dbUser.id;
+        if (role === "default" && dbUser) {
+            return lesson.groupId === dbUser.groupId || lesson.studentId === dbUser.email;
         }
         return false;
     });
@@ -97,7 +97,7 @@ const ScheduleScreen: React.FC = () => {
 
             const lessonStart = new Date(`${lesson.date}T${lesson.timeStart}:00`);
             const timeDifference = lessonStart.getTime() - now.getTime();
-            const sixHours = 6 * 60 * 60 * 1000; // 6 часов в миллисекундах
+            const sixHours = 24 * 60 * 60 * 1000; // 6 часов в миллисекундах
 
             if (timeDifference < sixHours) {
                 await setDoc(lessonRef, {status: IndividualLessonStatus.CanceledNeedsPayment.toString()}, {merge: true});

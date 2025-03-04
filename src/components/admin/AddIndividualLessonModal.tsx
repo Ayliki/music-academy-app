@@ -95,7 +95,8 @@ const AddIndividualLessonModal: React.FC<AddLessonModalProps> = ({date, visible,
             try {
                 const teachersQuery = query(
                     collection(db, 'users'),
-                    where('subjectId', '==', selectedSubject)
+                    where('subjectId', '==', selectedSubject),
+                    where('confirmed', '==', true)
                 );
                 const teachersSnapshot = await getDocs(teachersQuery);
                 const teachersData = teachersSnapshot.docs.map(doc => {
@@ -128,7 +129,8 @@ const AddIndividualLessonModal: React.FC<AddLessonModalProps> = ({date, visible,
             try {
                 const studentsQuery = query(
                     collection(db, 'users'),
-                    where('role', '==', 'default')
+                    where('role', '==', 'default'),
+                    where('confirmed', '==', true)
                 );
 
                 const studentsSnapshot = await getDocs(studentsQuery);

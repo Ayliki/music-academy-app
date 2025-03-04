@@ -70,7 +70,9 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({lessons, onConfirm, onCanc
                 const teachers: { [key: string]: string } = {};
                 teachersSnapshot.forEach(doc => {
                     const data = doc.data();
-                    teachers[doc.id] = `${data.lastName || ''} ${data.firstName || ''} ${data.middleName || ''}`.trim();
+                    if (data.role === 'teacher') {
+                        teachers[doc.id] = `${data.lastName || ''} ${data.firstName || ''} ${data.middleName || ''}`.trim();
+                    }
                 });
                 setTeachersMap(teachers);
 
@@ -83,12 +85,14 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({lessons, onConfirm, onCanc
                 });
                 setGroupsMap(groups);
 
-                // Получение учеников
-                const studentsSnapshot = await getDocs(collection(db, 'students'));
+                // Получение учеников (из коллекции users)
+                const studentsSnapshot = await getDocs(collection(db, 'users'));
                 const students: { [key: string]: string } = {};
                 studentsSnapshot.forEach(doc => {
                     const data = doc.data();
-                    students[doc.id] = `${data.lastName || ''} ${data.firstName || ''}`.trim();
+                    if (data.role == 'default') {
+                        students[doc.id] = `${data.lastName || ''} ${data.firstName || ''}`.trim();
+                    }
                 });
                 setStudentsMap(students);
             } catch (error) {

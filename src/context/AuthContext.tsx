@@ -4,7 +4,7 @@ import {onAuthStateChanged, User as FirebaseAuthUser} from 'firebase/auth';
 import {doc, onSnapshot, Unsubscribe} from 'firebase/firestore';
 
 interface UserData {
-    id: string;
+    email: string;
     role: string;
     confirmed?: boolean;
     codeVerified?: boolean;

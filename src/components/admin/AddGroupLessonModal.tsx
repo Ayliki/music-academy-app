@@ -101,7 +101,8 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({date, visible, onCl
             try {
                 const teachersQuery = query(
                     collection(db, 'users'),
-                    where('subjectId', '==', selectedSubject)
+                    where('subjectId', '==', selectedSubject),
+                    where('confirmed', '==', true)
                 );
                 const teachersSnapshot = await getDocs(teachersQuery);
                 const teachersData = teachersSnapshot.docs.map(doc => {
