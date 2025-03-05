@@ -48,7 +48,7 @@ const SignUpScreen: React.FC = () => {
                 firstName: values.firstName,
                 middleName: values.middleName,
                 phone: values.phone,
-                email: values.email,
+                email: values.email.toLowerCase(),
                 groupId: values.groupId,
                 subjectId: values.subjectId,
                 confirmed: false,
