@@ -67,6 +67,7 @@ export const useUserData = (): UseUserDataReturn => {
                                 ? undefined
                                 : docSnap.data().profilePicture,
                         role: docSnap.data().role || 'default',
+                        groupId: docSnap.data().groupId || undefined,
                     });
                 }
                 setIsLoading(false);
