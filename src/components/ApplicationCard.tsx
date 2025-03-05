@@ -1,6 +1,8 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import React, {useEffect, useState} from 'react';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import {Ionicons} from '@expo/vector-icons';
+import {collection, getDocs} from "firebase/firestore";
+import {db} from "../services/firebaseConfig";
 
 export interface Application {
     id: string;
@@ -8,8 +10,9 @@ export interface Application {
     days?: string[];
     startTime?: string;
     endTime?: string;
-    subject?: string;
-    teacher?: string;
+    studentId: string;
+    subjectId: string;
+    teacherId: string;
     confirmed?: boolean;
 }
 
@@ -19,7 +22,53 @@ interface ApplicationCardProps {
     onDelete?: (application: Application) => void;
 }
 
-const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, onConfirm, onDelete }) => {
+const ApplicationCard: React.FC<ApplicationCardProps> = ({application, onConfirm, onDelete}) => {
+    const [subjectsMap, setSubjectsMap] = useState<{ [key: string]: string }>({});
+    const [teachersMap, setTeachersMap] = useState<{ [key: string]: string }>({});
+    const [studentsMap, setStudentsMap] = useState<{ [key: string]: string }>({});
+
+    useEffect(() => {
+        const fetchMappings = async () => {
+            try {
+                // Получение предметов
+                const subjectsSnapshot = await getDocs(collection(db, 'subjects'));
+                const subjects: { [key: string]: string } = {};
+                subjectsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    subjects[doc.id] = data.name;
+                });
+                setSubjectsMap(subjects);
+
+                // Получение преподавателей (из коллекции "users")
+                const teachersSnapshot = await getDocs(collection(db, 'users'));
+                const teachers: { [key: string]: string } = {};
+                teachersSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.role === 'teacher') {
+                        teachers[doc.id] = `${data.lastName || ''} ${data.firstName || ''} ${data.middleName || ''}`.trim();
+                    }
+                });
+                setTeachersMap(teachers);
+
+                // Получение учеников (из коллекции users)
+                const studentsSnapshot = await getDocs(collection(db, 'users'));
+                const students: { [key: string]: string } = {};
+                studentsSnapshot.forEach(doc => {
+                    const data = doc.data();
+                    if (data.role == 'default') {
+                        students[doc.id] = `${data.lastName || ''} ${data.firstName || ''}`.trim();
+                    }
+                });
+                setStudentsMap(students);
+            } catch (error) {
+                console.error("Error fetching mappings: ", error);
+            }
+        };
+
+        fetchMappings();
+    }, []);
+
+
     return (
         <View style={styles.card}>
             {/* Top Right: Accept Button */}
@@ -27,7 +76,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, onConfir
                 {!application.confirmed && onConfirm && (
                     <TouchableOpacity style={styles.confirmButton} onPress={() => onConfirm(application)}>
                         <Text style={styles.actionText}>Принять</Text>
-                        <Ionicons name="checkmark-circle" size={24} color="black" />
+                        <Ionicons name="checkmark-circle" size={24} color="black"/>
                     </TouchableOpacity>
                 )}
             </View>
@@ -64,11 +113,15 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, onConfir
                     </View>
                     <View style={styles.textContainer}>
                         <Text style={styles.label}>Предмет:</Text>
-                        <Text style={styles.value}>{application.subject}</Text>
+                        <Text style={styles.value}>{subjectsMap[application.subjectId] || application.subjectId}</Text>
                     </View>
                     <View style={styles.textContainer}>
                         <Text style={styles.label}>Педагог:</Text>
-                        <Text style={styles.value}>{application.teacher}</Text>
+                        <Text style={styles.value}>{teachersMap[application.teacherId] || application.teacherId}</Text>
+                    </View>
+                    <View style={styles.textContainer}>
+                        <Text style={styles.label}>Ученик:</Text>
+                        <Text style={styles.value}>{studentsMap[application.studentId] || application.studentId}</Text>
                     </View>
                 </View>
             </View>
@@ -76,7 +129,7 @@ const ApplicationCard: React.FC<ApplicationCardProps> = ({ application, onConfir
             {/*Delete Button */}
             {onDelete && (
                 <TouchableOpacity style={styles.deleteButton} onPress={() => onDelete(application)}>
-                    <Ionicons name="trash-outline" size={24} color="black" />
+                    <Ionicons name="trash-outline" size={24} color="black"/>
                 </TouchableOpacity>
             )}
         </View>
@@ -97,7 +150,7 @@ const styles = StyleSheet.create({
         borderColor: '#CCC',
         shadowColor: '#000',
         shadowOpacity: 0.1,
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         elevation: 3,
         position: 'relative',
     },

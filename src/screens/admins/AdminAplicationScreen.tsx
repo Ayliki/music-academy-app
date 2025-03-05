@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { SafeAreaView, StyleSheet, TouchableOpacity, Text, FlatList, View, Alert } from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {SafeAreaView, StyleSheet, TouchableOpacity, Text, FlatList, View, Alert} from 'react-native';
 import HeaderMenu from '../../components/HeaderMenu';
-import { useNavigation } from '@react-navigation/native';
-import { NavigationProps } from '../../navigation/types';
-import { collection, onSnapshot, updateDoc, doc, deleteDoc, addDoc } from 'firebase/firestore';
-import { db } from '../../services/firebaseConfig';
-import ApplicationCard, { Application } from '../../components/ApplicationCard';
+import {useNavigation} from '@react-navigation/native';
+import {NavigationProps} from '../../navigation/types';
+import {collection, onSnapshot, updateDoc, doc, deleteDoc} from 'firebase/firestore';
+import {db} from '../../services/firebaseConfig';
+import ApplicationCard, {Application} from '../../components/ApplicationCard';
 
 const AdminApplicationsScreen: React.FC = () => {
     const navigation = useNavigation<NavigationProps>();
@@ -29,18 +29,7 @@ const AdminApplicationsScreen: React.FC = () => {
 
     const handleConfirmApplication = async (application: Application) => {
         try {
-            await updateDoc(doc(db, 'applications', application.id), { confirmed: true });
-            const lessonData = {
-                dayLabel: application.days ? application.days[0] : '',
-                lesson: application.subject,
-                confirmed: true,
-                teacher: application.teacher,
-                startTime: application.startTime,
-                endTime: application.endTime,
-                createdAt: new Date(),
-            };
-            await addDoc(collection(db, 'lessons'), lessonData);
-
+            await updateDoc(doc(db, 'applications', application.id), {confirmed: true});
             Alert.alert('Успех', 'Заявка подтверждена');
         } catch (error: any) {
             console.error('Error confirming application:', error);
@@ -58,7 +47,7 @@ const AdminApplicationsScreen: React.FC = () => {
         }
     };
 
-    const renderItem = ({ item }: { item: Application }) => (
+    const renderItem = ({item}: { item: Application }) => (
         <ApplicationCard
             application={item}
             onConfirm={!item.confirmed ? handleConfirmApplication : undefined}
@@ -68,7 +57,7 @@ const AdminApplicationsScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.container}>
-            <HeaderMenu title="Заявки" onBack={() => navigation.navigate('AdminMenu')} />
+            <HeaderMenu title="Заявки" onBack={() => navigation.navigate('AdminMenu')}/>
             <View style={styles.buttonRow}>
                 <TouchableOpacity
                     style={[

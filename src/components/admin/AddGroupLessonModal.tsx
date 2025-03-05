@@ -25,23 +25,27 @@ interface AddLessonModalProps {
 // 0 - воскресенье, 1 - понедельник, ..., 6 - суббота.
 const workingHours: { [key: number]: { start: string; end: string } | null } = {
     0: null, // Воскресенье — выходной
-    1: { start: '13:00', end: '20:30' }, // Понедельник
-    2: { start: '13:00', end: '20:30' }, // Вторник
-    3: { start: '13:00', end: '20:30' }, // Среда
-    4: { start: '13:00', end: '20:30' }, // Четверг
-    5: { start: '13:00', end: '20:30' }, // Пятница
-    6: { start: '10:00', end: '20:30' }, // Суббота
+    1: {start: '13:00', end: '20:30'}, // Понедельник
+    2: {start: '13:00', end: '20:30'}, // Вторник
+    3: {start: '13:00', end: '20:30'}, // Среда
+    4: {start: '13:00', end: '20:30'}, // Четверг
+    5: {start: '13:00', end: '20:30'}, // Пятница
+    6: {start: '10:00', end: '20:30'}, // Суббота
 };
 
 const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({date, visible, onClose}) => {
-    const [selectedSubject, setSelectedSubject] = useState('');
-    const [selectedTeacher, setSelectedTeacher] = useState('');
-    const [selectedGroup, setSelectedGroup] = useState('');
-    const [selectedRoom, setSelectedRoom] = useState('');
     const [subjects, setSubjects] = useState<any[]>([]);
+    const [selectedSubject, setSelectedSubject] = useState('');
+
     const [teachers, setTeachers] = useState<any[]>([]);
+    const [selectedTeacher, setSelectedTeacher] = useState('');
+
     const [groups, setGroups] = useState<any[]>([]);
+    const [selectedGroup, setSelectedGroup] = useState('');
+
     const [rooms, setRooms] = useState<any[]>([]);
+    const [selectedRoom, setSelectedRoom] = useState('');
+
     const [loading, setLoading] = useState(false);
     const [startTime, setStartTime] = useState('');
     const [endTime, setEndTime] = useState('');
