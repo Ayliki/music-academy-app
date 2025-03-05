@@ -16,6 +16,7 @@ import {doc, getDoc, updateDoc} from 'firebase/firestore';
 import {db} from '../../services/firebaseConfig';
 import * as ImagePicker from 'expo-image-picker';
 import {styles} from '../../styles/AddEventStyles';
+import {uploadImageAsync} from "../../utils/uploadImageAsync";
 
 interface EditEventModalProps {
     eventId: string;
@@ -33,19 +34,35 @@ const EditEventModal: React.FC<EditEventModalProps> = ({eventId, visible, onClos
     const [isTimePickerVisible, setTimePickerVisibility] = useState(false);
 
     const handlePickPhoto = async () => {
+        // Запрос разрешения на доступ к галерее
         const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-            Alert.alert('Ошибка', 'Требуется разрешение для доступа к галерее');
+        if (status !== "granted") {
+            Alert.alert("Ошибка", "Требуется разрешение для доступа к галерее");
             return;
         }
+
+        // Запуск выбора изображения из галереи
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [1, 1],
             quality: 0.7,
         });
-        if (!result.canceled && result.assets.length > 0) {
-            setImage(result.assets[0].uri);
+
+        // Если пользователь выбрал изображение
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+            const localUri = result.assets[0].uri;
+            try {
+                // Загружаем изображение в облако
+                const downloadURL = await uploadImageAsync(localUri);
+                // Сохраняем URL
+                setImage(downloadURL);
+                Alert.alert("Успех", "Изображение успешно загружено в облако");
+            } catch (error) {
+                console.error("Ошибка загрузки изображения", error);
+                console.error(JSON.stringify(error));
+                Alert.alert("Ошибка", "Не удалось загрузить изображение");
+            }
         }
     };
 

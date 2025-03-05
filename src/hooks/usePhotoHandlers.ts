@@ -1,9 +1,11 @@
 // src/hooks/usePhotoHandlers.ts
-import { useState } from 'react';
+import {useState} from 'react';
 import * as ImagePicker from 'expo-image-picker';
-import { updateUserProfile, UserProfile } from '../services/userService';
-import { auth, db } from '../services/firebaseConfig';
-import { doc, updateDoc, deleteField } from 'firebase/firestore';
+import {updateUserProfile, UserProfile} from '../services/userService';
+import {auth, db} from '../services/firebaseConfig';
+import {doc, updateDoc, deleteField} from 'firebase/firestore';
+import {uploadImageAsync} from "../utils/uploadImageAsync";
+import {Alert} from "react-native";
 
 interface UsePhotoHandlersReturn {
     isPhotoOptionsVisible: boolean;
@@ -25,21 +27,24 @@ const usePhotoHandlers = (
         return {
             isPhotoOptionsVisible,
             setIsPhotoOptionsVisible,
-            handleAddFromGallery: async () => { },
-            handleTakePhoto: async () => { },
-            handleRemovePhoto: async () => { },
+            handleAddFromGallery: async () => {
+            },
+            handleTakePhoto: async () => {
+            },
+            handleRemovePhoto: async () => {
+            },
         };
     }
 
     const handleAddFromGallery = async () => {
-        const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== 'granted') {
             alert('Доступ к галерее запрещён!');
             setIsPhotoOptionsVisible(false);
             return;
         }
         const result = await ImagePicker.launchImageLibraryAsync({
-            // Removed mediaTypes option as it is deprecated
+            mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [1, 1],
             quality: 1,
@@ -48,19 +53,29 @@ const usePhotoHandlers = (
             setIsPhotoOptionsVisible(false);
             return;
         }
-        const uri: string = result.assets[0].uri;
+        const localUri = result.assets[0].uri;
         try {
-            const updatedProfile: UserProfile = { ...initialValues, profilePicture: uri };
-            await updateUserProfile(updatedProfile);
-            await refetch();
+            const downloadURL = await uploadImageAsync(localUri);
+            try {
+                const updatedProfile: UserProfile = {...initialValues, profilePicture: downloadURL};
+                await updateUserProfile(updatedProfile);
+                await refetch();
+            } catch (error) {
+                console.error('Error updating profile picture:', error);
+            }
+
+            Alert.alert("Успех", "Изображение успешно загружено");
         } catch (error) {
-            console.error('Error updating profile picture:', error);
+            console.error("Ошибка загрузки изображения", error);
+            console.log(JSON.stringify(error));
+            Alert.alert("Ошибка", "Не удалось загрузить изображение");
         }
+
         setIsPhotoOptionsVisible(false);
     };
 
     const handleTakePhoto = async () => {
-        const { status } = await ImagePicker.requestCameraPermissionsAsync();
+        const {status} = await ImagePicker.requestCameraPermissionsAsync();
         if (status !== 'granted') {
             alert('Доступ к камере запрещён!');
             setIsPhotoOptionsVisible(false);
@@ -75,13 +90,22 @@ const usePhotoHandlers = (
             setIsPhotoOptionsVisible(false);
             return;
         }
-        const uri: string = result.assets[0].uri;
+        const localUri = result.assets[0].uri;
         try {
-            const updatedProfile: UserProfile = { ...initialValues, profilePicture: uri };
-            await updateUserProfile(updatedProfile);
-            await refetch();
+            const downloadURL = await uploadImageAsync(localUri);
+            try {
+                const updatedProfile: UserProfile = {...initialValues, profilePicture: downloadURL};
+                await updateUserProfile(updatedProfile);
+                await refetch();
+            } catch (error) {
+                console.error('Error updating profile picture:', error);
+            }
+
+            Alert.alert("Успех", "Изображение успешно загружено");
         } catch (error) {
-            console.error('Error updating profile picture:', error);
+            console.error("Ошибка загрузки изображения", error);
+            console.log(JSON.stringify(error));
+            Alert.alert("Ошибка", "Не удалось загрузить изображение");
         }
         setIsPhotoOptionsVisible(false);
     };
@@ -90,7 +114,7 @@ const usePhotoHandlers = (
         if (!currentUser?.email) return;
         try {
             const docRef = doc(db, 'users', currentUser.email.toLowerCase());
-            await updateDoc(docRef, { profilePicture: deleteField() });
+            await updateDoc(docRef, {profilePicture: deleteField()});
             await refetch();
         } catch (error) {
             console.error('Error removing profile picture:', error);

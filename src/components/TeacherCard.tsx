@@ -5,7 +5,7 @@ type Teacher = {
     id: string;
     name: string;
     subject: string;
-    photo: string;
+    profilePicture: string;
 };
 
 type TeacherCardProps = {
@@ -14,12 +14,11 @@ type TeacherCardProps = {
 
 const TeacherCard: React.FC<TeacherCardProps> = ({teacher}) => {
     const displayName = teacher.name ? teacher.name.trim() : '';
-    const imageSource = {uri: teacher.photo};
 
     return (
         <View style={styles.card}>
             <View style={styles.imageContainer}>
-                <Image source={imageSource} style={styles.profileImage}/>
+                <Image source={{uri: teacher.profilePicture}} style={styles.profileImage}/>
             </View>
             <View style={styles.cardContent}>
                 <View style={styles.teacherInfo}>

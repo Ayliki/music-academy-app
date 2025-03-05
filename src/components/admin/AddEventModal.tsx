@@ -1,20 +1,21 @@
 import React, {useState} from 'react';
 import {
+    Alert,
+    Image,
+    Keyboard,
     Modal,
-    View,
     Text,
     TextInput,
     TouchableOpacity,
-    Alert,
-    Keyboard,
     TouchableWithoutFeedback,
-    Image,
+    View,
 } from 'react-native';
 import DateTimePickerModal from 'react-native-modal-datetime-picker';
-import {collection, addDoc} from 'firebase/firestore';
+import {addDoc, collection} from 'firebase/firestore';
 import {db} from '../../services/firebaseConfig';
 import * as ImagePicker from 'expo-image-picker';
 import {styles} from '../../styles/AddEventStyles';
+import {uploadImageAsync} from "../../utils/uploadImageAsync";
 
 interface AddEventModalProps {
     visible: boolean;
@@ -31,22 +32,37 @@ const AddEventModal: React.FC<AddEventModalProps> = ({visible, onClose}) => {
 
     // Обработка выбора изображения
     const handlePickPhoto = async () => {
+        // Запрос разрешения на доступ к галерее
         const {status} = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (status !== 'granted') {
-            Alert.alert('Ошибка', 'Требуется разрешение для доступа к галерее');
+        if (status !== "granted") {
+            Alert.alert("Ошибка", "Требуется разрешение для доступа к галерее");
             return;
         }
+
+        // Запуск выбора изображения из галереи
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.Images,
             allowsEditing: true,
             aspect: [1, 1],
             quality: 0.7,
         });
+
+        // Если пользователь выбрал изображение
         if (!result.canceled && result.assets && result.assets.length > 0) {
-            setImage(result.assets[0].uri);
+            const localUri = result.assets[0].uri;
+            try {
+                // Загружаем изображение в облако
+                const downloadURL = await uploadImageAsync(localUri);
+                // Сохраняем URL
+                setImage(downloadURL);
+                Alert.alert("Успех", "Изображение успешно загружено в облако");
+            } catch (error) {
+                console.error("Ошибка загрузки изображения", error);
+                console.log(JSON.stringify(error));
+                Alert.alert("Ошибка", "Не удалось загрузить изображение");
+            }
         }
     };
-
     // Форматирование даты в формат DD.MM.YYYY
     const formatDate = (date: Date) => {
         const day = ("0" + date.getDate()).slice(-2);

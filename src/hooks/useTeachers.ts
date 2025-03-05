@@ -6,7 +6,7 @@ export type Teacher = {
     id: string;
     name: string;
     subject: string;
-    photo: string;
+    profilePicture: string;
 };
 
 export const useTeachers = (): {
@@ -52,7 +52,7 @@ export const useTeachers = (): {
                     id: doc.id,
                     name: displayName,
                     subject: subjectName,
-                    photo: data.photo || ""
+                    profilePicture: data.profilePicture || ""
                 };
             });
 

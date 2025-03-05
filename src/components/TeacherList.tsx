@@ -6,7 +6,7 @@ type Teacher = {
     id: string;
     name: string;
     subject: string;
-    photo: string;
+    profilePicture: string;
 };
 
 type TeachersListProps = {
