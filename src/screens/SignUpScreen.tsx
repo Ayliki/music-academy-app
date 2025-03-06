@@ -40,8 +40,13 @@ const SignUpScreen: React.FC = () => {
             setSignupData(values);
             setIsCodeStep(true);
 
-            await createUserWithEmailAndPassword(auth, values.email, 'someplaceholderpassword');
             setTempEmail(values.email);
+
+            try {
+                await createUserWithEmailAndPassword(auth, values.email, 'someplaceholderpassword');
+            } catch (error: any) {
+                console.error('Error creating user:', error);
+            }
 
             await setDoc(doc(db, 'users', values.email.toLowerCase()), {
                 lastName: values.lastName,
@@ -105,7 +110,7 @@ const SignUpScreen: React.FC = () => {
 
     return (
         <SafeAreaView style={styles.safeArea}>
-            <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="handled">
+            <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="never">
                 <Header/>
 
                 {isCodeStep ? (

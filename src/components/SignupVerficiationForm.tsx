@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, StyleSheet} from 'react-native';
 
 interface SignupVerificationFormProps {
     code: string;
@@ -8,12 +8,13 @@ interface SignupVerificationFormProps {
     onVerify: () => void;
 }
 
-const SignupVerificationForm: React.FC<SignupVerificationFormProps> = ({
-    code,
-    onChangeCode,
-    onGoBack,
-    onVerify,
-}) => {
+const SignupVerificationForm: React.FC<SignupVerificationFormProps> = (
+    {
+        code,
+        onChangeCode,
+        onGoBack,
+        onVerify,
+    }) => {
     return (
         <View style={styles.formContainer}>
             <Text style={styles.verificationText}>Введите код, отправленный на почту</Text>
