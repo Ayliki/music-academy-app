@@ -10,6 +10,7 @@ export interface UserProfile {
     profilePicture?: string;
     role?: "teacher" | "administrator" | "default";
     groupId?: string;
+    subjectId?: string;
 }
 
 export const updateUserProfile = async (values: UserProfile): Promise<void> => {

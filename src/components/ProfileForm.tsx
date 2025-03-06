@@ -1,5 +1,5 @@
 import React, {useState, useEffect} from 'react';
-import {View, Text, TextInput, TouchableOpacity, StyleSheet} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, StyleSheet, Alert} from 'react-native';
 import {Formik} from 'formik';
 import * as Yup from 'yup';
 import {UserProfile} from '../services/userService';
@@ -19,16 +19,24 @@ interface Group {
     name: string;
 }
 
+interface Subject {
+    id: string;
+    name: string;
+}
+
 interface ProfileFormProps {
     initialValues: UserProfile;
     onSubmit: (values: UserProfile) => Promise<void>;
 }
 
 const ProfileForm: React.FC<ProfileFormProps> = ({initialValues, onSubmit}) => {
-    // Состояние для хранения списка групп, полученных из Firebase
     const [groups, setGroups] = useState<Group[]>([]);
-    // Состояние для хранения названия группы
     const [groupName, setGroupName] = useState<string>("загрузка...");
+
+    const [subjects, setSubjects] = useState<Subject[]>([]);
+    const [subjectName, setSubjectName] = useState<string>("загрузка...");
+
+    console.log(initialValues.subjectId);
 
 
     // useEffect для получения групп из коллекции "groups" Firebase при монтировании компонента
@@ -49,15 +57,43 @@ const ProfileForm: React.FC<ProfileFormProps> = ({initialValues, onSubmit}) => {
         fetchGroups();
     }, []);
 
-    // useEffect для установки groupName в зависимости от initialValues
+    // Загрузка предметов
+    useEffect(() => {
+        const fetchSubjects = async () => {
+            try {
+                const subjectsSnapshot = await getDocs(collection(db, 'subjects'));
+                const subjectsData = subjectsSnapshot.docs.map(doc => ({
+                    id: doc.id,
+                    name: doc.data().name,
+                }));
+                setSubjects(subjectsData);
+            } catch (error) {
+                console.error('Ошибка при загрузке предметов: ', error);
+                Alert.alert('Ошибка', 'Не удалось загрузить предметы');
+            }
+        };
+
+        fetchSubjects();
+    }, []);
+
     useEffect(() => {
         if (initialValues.role === 'default') {
             const foundGroup = groups.find(group => group.id === initialValues.groupId);
-            setGroupName(foundGroup ? foundGroup.name : 'загрука...');
+            setGroupName(foundGroup ? foundGroup.name : 'загрузка...');
         } else {
             setGroupName("загрузка...");
         }
     }, [groups, initialValues.groupId, initialValues.role]);
+
+    useEffect(() => {
+        if (initialValues.role === 'teacher') {
+            const foundSubject = subjects.find(subject => subject.id === initialValues.subjectId);
+            setSubjectName(foundSubject ? foundSubject.name : 'загрузка...');
+        } else {
+            setSubjectName("загрузка...");
+        }
+    }, [subjects, initialValues.subjectId, initialValues.role]);
+
 
     let buttonColor = '#9999FF';
     if (initialValues.role === 'teacher') {
@@ -164,6 +200,18 @@ const ProfileForm: React.FC<ProfileFormProps> = ({initialValues, onSubmit}) => {
                             <TextInput
                                 style={[styles.input, {color: '#999'}]}
                                 value={groupName}
+                                editable={false} // поле не редактируется
+                            />
+                        </>
+                    )}
+
+                    {/* Отображаем предмет только для роли teacher */}
+                    {initialValues.role === 'teacher' && (
+                        <>
+                            <Text style={styles.label}>Предмет</Text>
+                            <TextInput
+                                style={[styles.input, {color: '#999'}]}
+                                value={subjectName}
                                 editable={false} // поле не редактируется
                             />
                         </>
