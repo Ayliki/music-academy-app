@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from '../services/firebaseConfig';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { updateDoc } from 'firebase/firestore';
 
 export const useAuth = () => {
     const [isLoading, setIsLoading] = useState(false);
@@ -14,7 +15,7 @@ export const useAuth = () => {
         try {
             setIsLoading(true);
             // Check if user exists in Firestore
-            const userDocRef = doc(db, 'users', email.toLowerCase());
+            const userDocRef = doc(db, 'users', email?.toLowerCase() || '');
             const userDoc = await getDoc(userDocRef);
             if (!userDoc.exists) {
                 Alert.alert('Ошибка', 'Такой пользователь не зарегистрирован');
@@ -70,6 +71,10 @@ export const useAuth = () => {
         const verified = await verifyCode();
         if (verified) {
             try {
+                await updateDoc(doc(db, 'users', tempEmail.toLowerCase()), {
+                    codeVerified: true,
+                });
+
                 await signInWithEmailAndPassword(auth, tempEmail, 'someplaceholderpassword');
                 onSuccess();
             } catch (error: any) {

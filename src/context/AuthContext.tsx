@@ -1,15 +1,26 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { auth, db } from '../services/firebaseConfig';
-import { onAuthStateChanged, User } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import React, {createContext, useContext, useState, useEffect, ReactNode} from 'react';
+import {auth, db} from '../services/firebaseConfig';
+import {onAuthStateChanged, User as FirebaseAuthUser} from 'firebase/auth';
+import {doc, onSnapshot, Unsubscribe} from 'firebase/firestore';
 
-type Role = 'default' | 'teacher' | 'administrator' | null;
+interface UserData {
+    email: string;
+    role: string;
+    confirmed?: boolean;
+    codeVerified?: boolean;
+    groupId?: string;
+}
 
 interface AuthContextType {
-    user: User | null;
+    firebaseUser: FirebaseAuthUser | null;
+    dbUser: UserData | null;
     loading: boolean;
-    role: Role;
-    setRole: (role: Role) => void;
+    role: string | null;
+    setRole: (role: string | null) => void;
+    confirmed: boolean | null;
+    setConfirmed: (confirmed: boolean) => void;
+    codeVerified: boolean;
+    setCodeVerified: (verified: boolean) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -18,41 +29,63 @@ interface AuthProviderProps {
     children: ReactNode;
 }
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-    const [user, setUser] = useState<User | null>(null);
+export const AuthProvider: React.FC<AuthProviderProps> = ({children}) => {
+    const [firebaseUser, setFirebaseUser] = useState<FirebaseAuthUser | null>(null);
+    const [dbUser, setDbUser] = useState<UserData | null>(null);
     const [loading, setLoading] = useState(true);
-    const [role, setRole] = useState<Role>(null);
+    const [role, setRole] = useState<string | null>(null);
+    const [confirmed, setConfirmed] = useState<boolean | null>(null);
+    const [codeVerified, setCodeVerified] = useState<boolean>(false);
 
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, async (authenticatedUser) => {
-            setUser(authenticatedUser);
-            setLoading(false);
-
+        let unsubscribe: Unsubscribe | undefined;
+        const unsubscribeAuth = onAuthStateChanged(auth, (authenticatedUser) => {
+            setFirebaseUser(authenticatedUser);
             if (authenticatedUser) {
-                try {
-                    const userDocRef = doc(db, 'users', authenticatedUser.email?.toLowerCase() || '');
-                    const docSnap = await getDoc(userDocRef);
+                const userDocRef = doc(db, 'users', authenticatedUser.email?.toLowerCase() || '');
+                unsubscribe = onSnapshot(userDocRef, (docSnap) => {
                     if (docSnap.exists()) {
-                        const data = docSnap.data();
-                        setRole(data.role ?? 'default');
+                        const data = docSnap.data() as UserData;
+                        setDbUser(data);
+                        setRole(data.role || 'default');
+                        setConfirmed(data.confirmed ?? false);
+                        setCodeVerified(data.codeVerified ?? false);
                     } else {
+                        setDbUser(null);
                         setRole('default');
-                        console.log('No user document found. Default role set.');
+                        setConfirmed(false);
+                        setCodeVerified(false);
                     }
-                } catch (error) {
-                    console.error('Error fetching user role:', error);
-                    setRole('default');
-                }
+                });
             } else {
+                setDbUser(null);
                 setRole(null);
+                setConfirmed(null);
+                setCodeVerified(false);
             }
+            setLoading(false);
         });
 
-        return () => unsubscribe();
+        return () => {
+            unsubscribeAuth();
+            if (unsubscribe) unsubscribe();
+        };
     }, []);
 
     return (
-        <AuthContext.Provider value={{ user, loading, role, setRole }}>
+        <AuthContext.Provider
+            value={{
+                firebaseUser,
+                dbUser,
+                loading,
+                role,
+                setRole,
+                confirmed,
+                setConfirmed,
+                codeVerified,
+                setCodeVerified,
+            }}
+        >
             {children}
         </AuthContext.Provider>
     );

@@ -25,7 +25,7 @@ const CodeVerificationForm: React.FC<CodeVerificationFormProps> = ({
                 onChangeText={onChangeCode}
                 keyboardType="numeric"
                 style={styles.input}
-                placeholder="Введите Код"
+                placeholder="Введите код"
                 maxLength={6}
                 textAlign="center"
             />

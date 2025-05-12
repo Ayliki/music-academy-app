@@ -4,9 +4,18 @@ import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 interface CustomAlertProps {
     visible: boolean;
     onClose: () => void;
+    role?: 'teacher' | 'administrator' | 'default';
+    children?: React.ReactNode;
 }
 
-const CustomAlert: React.FC<CustomAlertProps> = ({ visible, onClose }) => {
+const CustomAlert: React.FC<CustomAlertProps> = ({ visible, onClose, role = 'default', children }) => {
+    const okButtonBackgroundColor =
+        role === 'teacher'
+            ? '#314FBB'
+            : role === 'administrator'
+                ? '#4DD3BA'
+                : '#98A7DD';
+
     return (
         <Modal visible={visible} transparent animationType="fade">
             <View style={styles.modalContainer}>
@@ -15,11 +24,16 @@ const CustomAlert: React.FC<CustomAlertProps> = ({ visible, onClose }) => {
                         <Text style={styles.closeText}>×</Text>
                     </TouchableOpacity>
                     <View style={styles.contentContainer}>
-                        <Text style={styles.message}>
-                            Изменения успешно сохранены!
-                        </Text>
+                        {children ? (
+                            children
+                        ) : (
+                            <Text style={styles.message}>Изменения успешно сохранены!</Text>
+                        )}
                     </View>
-                    <TouchableOpacity onPress={onClose} style={styles.okButton}>
+                    <TouchableOpacity
+                        onPress={onClose}
+                        style={[styles.okButton, { backgroundColor: okButtonBackgroundColor }]}
+                    >
                         <Text style={styles.okText}>Ок</Text>
                     </TouchableOpacity>
                 </View>
@@ -27,6 +41,7 @@ const CustomAlert: React.FC<CustomAlertProps> = ({ visible, onClose }) => {
         </Modal>
     );
 };
+
 
 const styles = StyleSheet.create({
     modalContainer: {
@@ -75,7 +90,6 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: '#00A9E3',
         borderRadius: 4,
-        backgroundColor: '#98A7DD',
         justifyContent: 'center',
         alignItems: 'center',
         marginBottom: 10,

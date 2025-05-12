@@ -34,7 +34,7 @@ git clone https://github.com/your-username/music-academy.git
 cd music-academy
 ```
 
-###2️⃣ Install dependencies
+### 2️⃣ Install dependencies
 ```sh
 npm install
 ```

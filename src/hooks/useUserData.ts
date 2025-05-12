@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { doc, getDoc } from 'firebase/firestore';
+import { useEffect, useState, useCallback } from 'react';
+import { doc, onSnapshot, getDoc } from 'firebase/firestore';
 import { auth, db } from '../services/firebaseConfig';
 import { UserProfile } from '../services/userService';
 
@@ -16,7 +16,7 @@ export const useUserData = (): UseUserDataReturn => {
     const [error, setError] = useState<Error | null>(null);
     const currentUser = auth.currentUser;
 
-    const fetchUserData = async () => {
+    const fetchUserData = useCallback(async () => {
         if (!currentUser?.email) {
             setError(new Error('No current user or email available'));
             setIsLoading(false);
@@ -26,39 +26,65 @@ export const useUserData = (): UseUserDataReturn => {
             const docRef = doc(db, 'users', currentUser.email.toLowerCase());
             const docSnap = await getDoc(docRef);
             if (docSnap.exists()) {
-                const data = docSnap.data() as UserProfile;
                 setUserData({
-                    lastName: data.lastName || '',
-                    firstName: data.firstName || '',
-                    middleName: data.middleName || '',
-                    phone: data.phone || '',
+                    lastName: docSnap.data().lastName || '',
+                    firstName: docSnap.data().firstName || '',
+                    middleName: docSnap.data().middleName || '',
+                    phone: docSnap.data().phone || '',
                     email: currentUser.email,
-                    profilePicture: data.profilePicture,
-                    role: data.role,
+                    profilePicture:
+                        docSnap.data().profilePicture === null
+                            ? undefined
+                            : docSnap.data().profilePicture,
+                    role: docSnap.data().role || 'default',
                 });
             } else {
-                // Set default values if no document exists
-                setUserData({
-                    lastName: '',
-                    firstName: '',
-                    middleName: '',
-                    phone: '',
-                    email: currentUser.email,
-                    profilePicture: undefined,
-                    role: 'default',
-                });
+                setUserData(null);
             }
         } catch (e: any) {
             setError(e);
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [currentUser?.email]);
 
-    // Fetch the data on mount
     useEffect(() => {
-        fetchUserData();
-    }, [currentUser]);
+        if (!currentUser?.email) {
+            setIsLoading(false);
+            return;
+        }
+
+        const docRef = doc(db, 'users', currentUser.email.toLowerCase());
+        const unsubscribe = onSnapshot(
+            docRef,
+            (docSnap) => {
+                if (docSnap.exists()) {
+                    setUserData({
+                        lastName: docSnap.data().lastName || '',
+                        firstName: docSnap.data().firstName || '',
+                        middleName: docSnap.data().middleName || '',
+                        phone: docSnap.data().phone || '',
+                        email: currentUser.email !== null ? currentUser.email : undefined,
+                        profilePicture:
+                            docSnap.data().profilePicture === null
+                                ? undefined
+                                : docSnap.data().profilePicture,
+                        role: docSnap.data().role || 'default',
+                        groupId: docSnap.data().groupId || undefined,
+                        subjectId: docSnap.data().subjectId || undefined,
+                    });
+                }
+                setIsLoading(false);
+            },
+            (error) => {
+                console.error('Error fetching user data:', error);
+                setError(error);
+                setIsLoading(false);
+            }
+        );
+
+        return () => unsubscribe();
+    }, [currentUser?.email]);
 
     return { userData, isLoading, error, refetch: fetchUserData };
 };

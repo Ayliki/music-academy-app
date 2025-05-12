@@ -1,7 +1,8 @@
 import React from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthProvider } from './src/context/AuthContext';
-import AppNavigator from './src/navigation';
+import AppNavigator from './src/navigation/AppNavigator';
+import { NavigationContainer } from '@react-navigation/native';
 
 if (!global.localStorage) {
   global.localStorage = {
@@ -34,7 +35,9 @@ if (!global.localStorage) {
 export default function App() {
   return (
     <AuthProvider>
-      <AppNavigator />
+      <NavigationContainer>
+        <AppNavigator />
+      </NavigationContainer>
     </AuthProvider>
   );
 }

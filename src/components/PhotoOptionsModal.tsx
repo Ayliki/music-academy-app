@@ -7,6 +7,7 @@ interface PhotoOptionsModalProps {
     onAddFromGallery: () => void;
     onTakePhoto: () => void;
     onRemovePhoto: () => void;
+    role?: 'teacher' | 'administrator' | 'default';
 }
 
 const PhotoOptionsModal: React.FC<PhotoOptionsModalProps> = ({
@@ -15,7 +16,16 @@ const PhotoOptionsModal: React.FC<PhotoOptionsModalProps> = ({
     onAddFromGallery,
     onTakePhoto,
     onRemovePhoto,
+    role,
 }) => {
+
+    let optionBtnColor = '#98A7DD';
+    if (role === 'teacher') {
+        optionBtnColor = '#314FBB';
+    } else if (role === 'administrator') {
+        optionBtnColor = '#4DD3BA'
+    }
+
     return (
         <Modal visible={visible} transparent animationType="fade">
             <View style={styles.modalContainer}>
@@ -25,13 +35,13 @@ const PhotoOptionsModal: React.FC<PhotoOptionsModalProps> = ({
                     </TouchableOpacity>
                     <Text style={styles.title}>Выберите вариант:</Text>
                     <View style={styles.buttonsContainer}>
-                        <TouchableOpacity onPress={onAddFromGallery} style={styles.optionButton}>
+                        <TouchableOpacity onPress={onAddFromGallery} style={[styles.optionButton, { backgroundColor: optionBtnColor }]}>
                             <Text style={styles.optionText}>Добавить из галереи</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={onTakePhoto} style={styles.optionButton}>
+                        <TouchableOpacity onPress={onTakePhoto} style={[styles.optionButton, { backgroundColor: optionBtnColor }]}>
                             <Text style={styles.optionText}>Сделать фото</Text>
                         </TouchableOpacity>
-                        <TouchableOpacity onPress={onRemovePhoto} style={styles.optionButton}>
+                        <TouchableOpacity onPress={onRemovePhoto} style={[styles.optionButton, { backgroundColor: optionBtnColor }]}>
                             <Text style={styles.optionText}>Удалить фото</Text>
                         </TouchableOpacity>
                     </View>
@@ -80,7 +90,6 @@ const styles = StyleSheet.create({
     optionButton: {
         width: '100%',
         height: 40,
-        backgroundColor: '#98A7DD',
         borderWidth: 1,
         borderColor: '#00A9E3',
         borderRadius: 4,
