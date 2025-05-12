@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { doc, onSnapshot, getDoc } from 'firebase/firestore';
 import { auth, db } from '../services/firebaseConfig';
 import { UserProfile } from '../services/userService';
@@ -16,7 +16,7 @@ export const useUserData = (): UseUserDataReturn => {
     const [error, setError] = useState<Error | null>(null);
     const currentUser = auth.currentUser;
 
-    const fetchUserData = async () => {
+    const fetchUserData = useCallback(async () => {
         if (!currentUser?.email) {
             setError(new Error('No current user or email available'));
             setIsLoading(false);
@@ -46,10 +46,13 @@ export const useUserData = (): UseUserDataReturn => {
         } finally {
             setIsLoading(false);
         }
-    };
+    }, [currentUser?.email]);
 
     useEffect(() => {
-        if (!currentUser?.email) return;
+        if (!currentUser?.email) {
+            setIsLoading(false);
+            return;
+        }
 
         const docRef = doc(db, 'users', currentUser.email.toLowerCase());
         const unsubscribe = onSnapshot(

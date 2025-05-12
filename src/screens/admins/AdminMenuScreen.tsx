@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
     SafeAreaView,
     View,
@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { NavigationProps } from '../../navigation/types';
+import { NavigationProps, NoParamsRoutes, RootStackParamList } from '../../navigation/types';
 import { useUserData } from '../../hooks/useUserData';
 import LoadingOverlay from '../../components/LoadingOverlay';
 import ProfileSummary from '../../components/ProfileSummary';
@@ -15,18 +15,22 @@ import MenuItem from '../../components/MenuItem';
 import HeaderMenu from '../../components/HeaderMenu';
 import { signOut } from 'firebase/auth';
 import { auth } from '../../services/firebaseConfig';
+import { CommonActions } from '@react-navigation/native';
+import { useAuth } from 'src/context/AuthContext';
+
 
 interface MenuItemData {
     label: string;
-    screen?: string;
-    onPress?: () => void;
+    screen?: NoParamsRoutes;
     icon: keyof typeof Ionicons.glyphMap;
 }
 
 const MenuScreen: React.FC = () => {
     const { width } = useWindowDimensions();
     const navigation = useNavigation<NavigationProps>();
-    const { userData, isLoading, refetch } = useUserData();
+    const { firebaseUser, loading: authLoading } = useAuth();
+    const { userData, isLoading: dataLoading, refetch } = useUserData();
+
 
     useFocusEffect(
         React.useCallback(() => {
@@ -34,8 +38,12 @@ const MenuScreen: React.FC = () => {
         }, [refetch])
     );
 
-    if (isLoading || !userData) {
-        return <LoadingOverlay visible={true} />;
+    if (authLoading || dataLoading) {
+        return <LoadingOverlay visible />;
+    }
+
+    if (!firebaseUser) {
+        return null;
     }
 
     const handleLogout = async () => {
@@ -46,8 +54,6 @@ const MenuScreen: React.FC = () => {
         }
     };
 
-    const fullName = `${userData.lastName} ${userData.firstName}`;
-
     const menuItems: MenuItemData[] = [
         { label: 'Профиль', screen: 'Profile', icon: 'person' },
         { label: 'События', screen: 'Events', icon: 'calendar' },
@@ -55,23 +61,25 @@ const MenuScreen: React.FC = () => {
         { label: 'Заявки', screen: 'Applications', icon: 'document-text' },
         { label: 'Педагоги', screen: 'Teachers', icon: 'people' },
         { label: 'Пользователи', screen: 'Users', icon: 'person' },
-        { label: 'Выйти', onPress: handleLogout, icon: 'log-out' },
+        { label: 'Выйти', icon: 'log-out' },
     ];
 
     return (
         <SafeAreaView style={styles.safeArea}>
             <HeaderMenu title={'Профиль'} onBack={() => navigation.goBack()} showBackButton={false} />
-            <ProfileSummary profile={userData} onPress={() => navigation.navigate('Profile')} />
+            <ProfileSummary profile={userData!} onPress={() => navigation.navigate('Profile')} />
 
             {/* Menu Items */}
             <View style={[styles.menuItemsContainer, { paddingHorizontal: width * 0.05 }]}>
-                {menuItems.map((item, index) => (
+                {menuItems.map(({ label, icon, screen }, i) => (
                     <MenuItem
-                        key={index}
-                        label={item.label}
-                        icon={item.icon}
+                        key={i}
+                        label={label}
+                        icon={icon}
                         onPress={() =>
-                            item.onPress ? item.onPress() : navigation.navigate(item.screen as any)
+                            label === 'Выйти'
+                                ? handleLogout()
+                                : navigation.navigate(screen!)
                         }
                     />
                 ))}

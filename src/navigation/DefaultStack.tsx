@@ -16,43 +16,17 @@ export type DefaultStackParamList = {
     Teachers: undefined;
 };
 
-const Stack = createNativeStackNavigator();
+const Stack = createNativeStackNavigator<DefaultStackParamList>();
 
-const DefaultStack = () => {
-    return (
-        <Stack.Navigator>
-            <Stack.Screen
-                name="Menu"
-                component={MenuScreen}
-                options={{ headerShown: false }}
-            />
-            <Stack.Screen
-                name="Profile"
-                component={ProfileScreen}
-                options={{ headerShown: false }}
-            />
-            <Stack.Screen
-                name="Events"
-                component={EventsScreen}
-                options={{ headerShown: false }}
-            />
-            <Stack.Screen
-                name="Schedule"
-                component={ScheduleScreen}
-                options={{ headerShown: false }}
-            />
-            <Stack.Screen
-                name="Application"
-                component={ApplicationScreen}
-                options={{ headerShown: false }}
-            />
-            <Stack.Screen
-                name="Teachers"
-                component={TeachersScreen}
-                options={{ headerShown: false }}
-            />
-        </Stack.Navigator>
-    );
-};
+const DefaultStack: React.FC = () => (
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="Menu" component={MenuScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="Events" component={EventsScreen} />
+        <Stack.Screen name="Schedule" component={ScheduleScreen} />
+        <Stack.Screen name="Application" component={ApplicationScreen} />
+        <Stack.Screen name="Teachers" component={TeachersScreen} />
+    </Stack.Navigator>
+);
 
 export default DefaultStack;
