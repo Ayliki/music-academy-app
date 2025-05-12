@@ -14,6 +14,12 @@ export type RootStackParamList = {
     AdminMenu: undefined;
     Users: undefined;
     EnterCode: { email: string };
+    Applications: undefined;
 };
+
+export type NoParamsRoutes = {
+    [K in keyof RootStackParamList]: RootStackParamList[K] extends undefined ? K : never
+}[keyof RootStackParamList];
+
 
 export type NavigationProps = NativeStackNavigationProp<RootStackParamList>;
