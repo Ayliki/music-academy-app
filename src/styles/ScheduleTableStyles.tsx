@@ -1,4 +1,4 @@
-import {StyleSheet} from "react-native";
+import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
     scheduleContainer: {
@@ -13,6 +13,7 @@ const styles = StyleSheet.create({
         width: 90,
         borderRightWidth: 2,
         borderRightColor: '#ccc',
+        alignSelf: 'stretch',
     },
     rightColumn: {
         flex: 1,
