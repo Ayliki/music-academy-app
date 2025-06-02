@@ -1,10 +1,11 @@
-import React, { useEffect, useState } from 'react';
-import { ScrollView, Text, TouchableOpacity, View } from "react-native";
+import React, {useEffect, useState} from 'react';
+import {ScrollView, Text, TouchableOpacity, View} from "react-native";
 import styles from '../styles/ScheduleTableStyles';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../services/firebaseConfig';
-import { useAuth } from '../context/AuthContext';
-import { IndividualLessonStatus } from "../types/IndividualLessonStatus";
+import {collection, getDocs} from 'firebase/firestore';
+import {db} from '../services/firebaseConfig';
+import {useAuth} from '../context/AuthContext';
+import {IndividualLessonStatus} from "../types/IndividualLessonStatus";
+import {Ionicons} from '@expo/vector-icons';
 
 export type Lesson = {
     id: string;
@@ -26,7 +27,9 @@ type ScheduleTableProps = {
     lessons: Lesson[];
     onConfirm: (lesson: Lesson) => void;
     onCancel: (lesson: Lesson) => void;
-    onStudentPaid: (lesson: Lesson) => void; // Добавлен новый пропс для админа
+    onStudentPaid: (lesson: Lesson) => void;
+    onEdit?: (lesson: Lesson) => void;
+    onDelete?: (lesson: Lesson) => void;
 };
 
 type RoomMapping = {
@@ -34,7 +37,16 @@ type RoomMapping = {
     color: string;
 };
 
-const ScheduleTable: React.FC<ScheduleTableProps> = ({ lessons, onConfirm, onCancel, onStudentPaid }) => {
+const ScheduleTable: React.FC<ScheduleTableProps> = (
+    {
+        lessons,
+        onConfirm,
+        onCancel,
+        onStudentPaid,
+        onEdit,
+        onDelete
+    }
+) => {
     // Словари для сопоставления ID с именами
     const [subjectsMap, setSubjectsMap] = useState<{ [key: string]: string }>({});
     const [roomsMap, setRoomsMap] = useState<{ [key: string]: RoomMapping }>({});
@@ -42,7 +54,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({ lessons, onConfirm, onCan
     const [groupsMap, setGroupsMap] = useState<{ [key: string]: string }>({});
     const [studentsMap, setStudentsMap] = useState<{ [key: string]: string }>({});
 
-    const { role } = useAuth();
+    const {role} = useAuth();
 
     useEffect(() => {
         const fetchMappings = async () => {
@@ -61,7 +73,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({ lessons, onConfirm, onCan
                 const rooms: { [key: string]: RoomMapping } = {};
                 roomsSnapshot.forEach(doc => {
                     const data = doc.data();
-                    rooms[doc.id] = { name: data.name, color: data.color };
+                    rooms[doc.id] = {name: data.name, color: data.color};
                 });
                 setRoomsMap(rooms);
 
@@ -149,7 +161,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({ lessons, onConfirm, onCan
                                 styles.lessonCard,
                                 {
                                     flex: 1,
-                                    backgroundColor: roomData.color,
+                                    backgroundColor: roomColor,
                                     marginBottom: 0,          // убираем нижний отступ, он теперь вынесен в row
                                     flexWrap: 'wrap',
                                     marginLeft: 8,
@@ -157,7 +169,7 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({ lessons, onConfirm, onCan
                             ]}
                         >
                             <Text style={styles.lessonName}>{subjectName}</Text>
-                            <Text style={styles.roomText}>Каб: {roomData.name}</Text>
+                            <Text style={styles.roomText}>Каб: {roomName}</Text>
                             <Text style={styles.instructorText}>
                                 Преподаватель: {teacherName}
                             </Text>
@@ -228,6 +240,24 @@ const ScheduleTable: React.FC<ScheduleTableProps> = ({ lessons, onConfirm, onCan
                             {/* Отображаем статус "Отменено, но оплачено" */}
                             {lesson.status === IndividualLessonStatus.CanceledPaid && (
                                 <Text style={styles.statusNegative}>Отменено, но оплачено</Text>
+                            )}
+
+                            {/* Отображаем кнопки редактирования и удаления для администратора */}
+                            {role === "administrator" && onEdit && onDelete && (
+                                <View style={styles.adminActionsContainer}>
+                                    <TouchableOpacity
+                                        style={styles.editButton}
+                                        onPress={() => onEdit(lesson)}
+                                    >
+                                        <Ionicons name="create" size={24} color="blue"/>
+                                    </TouchableOpacity>
+                                    <TouchableOpacity
+                                        style={styles.deleteButton}
+                                        onPress={() => onDelete(lesson)}
+                                    >
+                                        <Ionicons name="trash" size={24} color="red"/>
+                                    </TouchableOpacity>
+                                </View>
                             )}
                         </View>
                     </View>

@@ -141,6 +141,23 @@ const styles = StyleSheet.create({
         marginLeft: 8,
         alignItems: 'center',
         minWidth: 80,
+    },
+    adminActionsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+        width: '100%',
+        marginTop: 8,
+    },
+    editButton: {
+        backgroundColor: 'rgba(255,255,255,0.7)',
+        borderRadius: 16,
+        padding: 4,
+        marginRight: 8,
+    },
+    deleteButton: {
+        backgroundColor: 'rgba(255,255,255,0.7)',
+        borderRadius: 16,
+        padding: 4,
     }
 });
 

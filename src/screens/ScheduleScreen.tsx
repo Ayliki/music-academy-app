@@ -7,7 +7,7 @@ import {
     TouchableOpacity,
     Alert,
 } from 'react-native';
-import {doc, setDoc, updateDoc} from 'firebase/firestore';
+import {doc, setDoc, updateDoc, deleteDoc} from 'firebase/firestore';
 import {useNavigation} from '@react-navigation/native';
 import {NavigationProps} from 'src/navigation/types';
 import {useLessons} from '../hooks/useLessons';
@@ -18,6 +18,7 @@ import {db} from '../services/firebaseConfig';
 import {useAuth} from 'src/context/AuthContext';
 import AddGroupLessonModal from "../components/admin/AddGroupLessonModal";
 import AddIndividualLessonModal from "../components/admin/AddIndividualLessonModal";
+import EditLessonModal from "../components/admin/EditLessonModal";
 import {IndividualLessonStatus} from "../types/IndividualLessonStatus";
 
 interface DateOption {
@@ -46,6 +47,8 @@ const ScheduleScreen: React.FC = () => {
     const {dbUser, role} = useAuth();
     const [isAddGroupLessonModalVisible, setIsAddGroupLessonModalVisible] = useState(false);
     const [isAddIndividualLessonModalVisible, setIsAddIndividualLessonModalVisible] = useState(false);
+    const [isEditLessonModalVisible, setIsEditLessonModalVisible] = useState(false);
+    const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
 
     const today = new Date();
     const todayIso = today.toISOString().split('T')[0];
@@ -137,6 +140,36 @@ const ScheduleScreen: React.FC = () => {
         }
     };
 
+    const handleEditLesson = (lesson: Lesson) => {
+        setSelectedLesson(lesson);
+        setIsEditLessonModalVisible(true);
+    };
+
+    const handleDeleteLesson = (lesson: Lesson) => {
+        Alert.alert(
+            "Вы точно хотите удалить занятие?",
+            "Это действие нельзя будет отменить.",
+            [
+                { text: "Отмена", style: "cancel" },
+                {
+                    text: "Удалить",
+                    onPress: async () => {
+                        try {
+                            await deleteDoc(doc(db, 'lessons', lesson.id));
+                            // Обновляем список занятий после удаления
+                            setLessons(prevLessons => prevLessons.filter(l => l.id !== lesson.id));
+                            Alert.alert("Успех", "Занятие успешно удалено");
+                        } catch (error: any) {
+                            console.error('Ошибка при удалении занятия:', error);
+                            Alert.alert('Ошибка', 'Не удалось удалить занятие');
+                        }
+                    },
+                    style: "destructive",
+                }
+            ]
+        );
+    };
+
     return (
         <SafeAreaView style={styles.safeArea}>
             <View style={{flex: 1}}>
@@ -170,6 +203,8 @@ const ScheduleScreen: React.FC = () => {
                     onConfirm={handleConfirmByStudent}
                     onCancel={handleCancelByStudent}
                     onStudentPaid={markLessonAsPaid}
+                    onEdit={handleEditLesson}
+                    onDelete={handleDeleteLesson}
                 />
             </View>
 
@@ -204,6 +239,14 @@ const ScheduleScreen: React.FC = () => {
                     visible={isAddIndividualLessonModalVisible}
                     onClose={() => setIsAddIndividualLessonModalVisible(false)}
                     date={new Date(selectedDateIso)}
+                />
+            )}
+
+            {role === 'administrator' && (
+                <EditLessonModal
+                    lesson={selectedLesson}
+                    visible={isEditLessonModalVisible}
+                    onClose={() => setIsEditLessonModalVisible(false)}
                 />
             )}
         </SafeAreaView>
