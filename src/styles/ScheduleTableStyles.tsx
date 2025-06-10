@@ -148,6 +148,26 @@ const styles = StyleSheet.create({
         width: '100%',
         marginTop: 8,
     },
+    leftActionsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        width: '100%',
+        marginTop: 8,
+    },
+    combinedActionsContainer: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        width: '100%',
+        marginTop: 8,
+    },
+    leftButtonsGroup: {
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+    },
+    rightButtonsGroup: {
+        flexDirection: 'row',
+        justifyContent: 'flex-end',
+    },
     editButton: {
         backgroundColor: 'rgba(255,255,255,0.7)',
         borderRadius: 16,

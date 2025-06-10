@@ -224,40 +224,69 @@ const ScheduleTable: React.FC<ScheduleTableProps> = (
                                 </Text>
                             )}
 
-                            {/* Отображаем кнопку "Оплатить" для админа */}
-                            {role === "administrator"
-                                && lesson.status === IndividualLessonStatus.CanceledNeedsPayment && (
-                                    <View style={styles.actionsContainer}>
-                                        <TouchableOpacity
-                                            style={styles.confirmButton}
-                                            onPress={() => onStudentPaid(lesson)}
-                                        >
-                                            <Text style={styles.actionButtonText}>Ученик оплатил</Text>
-                                        </TouchableOpacity>
-                                    </View>
-                                )}
-
                             {/* Отображаем статус "Отменено, но оплачено" */}
                             {lesson.status === IndividualLessonStatus.CanceledPaid && (
                                 <Text style={styles.statusNegative}>Отменено, но оплачено</Text>
                             )}
 
-                            {/* Отображаем кнопки редактирования и удаления для администратора */}
-                            {role === "administrator" && onEdit && onDelete && (
-                                <View style={styles.adminActionsContainer}>
-                                    <TouchableOpacity
-                                        style={styles.editButton}
-                                        onPress={() => onEdit(lesson)}
-                                    >
-                                        <Ionicons name="create" size={24} color="blue"/>
-                                    </TouchableOpacity>
-                                    <TouchableOpacity
-                                        style={styles.deleteButton}
-                                        onPress={() => onDelete(lesson)}
-                                    >
-                                        <Ionicons name="trash" size={24} color="red"/>
-                                    </TouchableOpacity>
+                            {/* Специальный случай: когда нужно отобразить и кнопку "Ученик оплатил", и кнопки редактирования/удаления */}
+                            {role === "administrator" && lesson.status === IndividualLessonStatus.CanceledNeedsPayment && onEdit && onDelete ? (
+                                <View style={styles.combinedActionsContainer}>
+                                    <View style={styles.leftButtonsGroup}>
+                                        <TouchableOpacity
+                                            style={styles.confirmButton}
+                                            onPress={() => onStudentPaid(lesson)}
+                                        >
+                                            <Text style={styles.actionButtonText}>Оплачено</Text>
+                                        </TouchableOpacity>
+                                    </View>
+                                    <View style={styles.rightButtonsGroup}>
+                                        <TouchableOpacity
+                                            style={styles.editButton}
+                                            onPress={() => onEdit(lesson)}
+                                        >
+                                            <Ionicons name="create" size={24} color="blue"/>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
+                                            style={styles.deleteButton}
+                                            onPress={() => onDelete(lesson)}
+                                        >
+                                            <Ionicons name="trash" size={24} color="red"/>
+                                        </TouchableOpacity>
+                                    </View>
                                 </View>
+                            ) : (
+                                <>
+                                    {/* Отображаем кнопку "Оплатить" для админа */}
+                                    {role === "administrator" && lesson.status === IndividualLessonStatus.CanceledNeedsPayment && (
+                                        <View style={styles.leftActionsContainer}>
+                                            <TouchableOpacity
+                                                style={styles.confirmButton}
+                                                onPress={() => onStudentPaid(lesson)}
+                                            >
+                                                <Text style={styles.actionButtonText}>Ученик оплатил</Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    )}
+
+                                    {/* Отображаем кнопки редактирования и удаления для администратора */}
+                                    {role === "administrator" && onEdit && onDelete && (
+                                        <View style={styles.adminActionsContainer}>
+                                            <TouchableOpacity
+                                                style={styles.editButton}
+                                                onPress={() => onEdit(lesson)}
+                                            >
+                                                <Ionicons name="create" size={24} color="blue"/>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                style={styles.deleteButton}
+                                                onPress={() => onDelete(lesson)}
+                                            >
+                                                <Ionicons name="trash" size={24} color="red"/>
+                                            </TouchableOpacity>
+                                        </View>
+                                    )}
+                                </>
                             )}
                         </View>
                     </View>
