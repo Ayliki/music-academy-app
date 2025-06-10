@@ -15,6 +15,7 @@ import SingleSelectDropdown from '../SingleSelectDropdown';
 import {styles} from '../../styles/AddGroupLessonModalStyles';
 import DateTimePickerModal from "react-native-modal-datetime-picker";
 import {Lesson} from '../ScheduleTable';
+import {IndividualLessonStatus} from "../../types/IndividualLessonStatus";
 
 interface EditLessonModalProps {
     lesson: Lesson | null;
@@ -447,6 +448,12 @@ const EditLessonModal: React.FC<EditLessonModalProps> = ({lesson, visible, onClo
                 date: formattedDate,
             };
 
+            // Проверяем, изменилось ли время или дата для индивидуального занятия
+            if (!isGroupLesson && lesson && (lesson.timeStart !== startTime || lesson.timeEnd !== endTime || lesson.date !== formattedDate)) {
+                // Если время или дата изменились, сбрасываем статус на "Ожидает подтверждения"
+                lessonData.status = IndividualLessonStatus.WaitForConfirmation;
+            }
+
             // Добавляем поле groupId или studentId в зависимости от типа занятия
             if (isGroupLesson) {
                 lessonData.groupId = selectedGroup;
@@ -511,8 +518,8 @@ const EditLessonModal: React.FC<EditLessonModalProps> = ({lesson, visible, onClo
                                 />
                             </View>
                         ) : (
-                            <View pointerEvents={selectedTeacher ? 'auto' : 'none'}
-                                  style={{opacity: selectedTeacher ? 1 : 0.5}}>
+                            <View pointerEvents={'none'}
+                                  style={{opacity: 0.5}}>
                                 <SingleSelectDropdown
                                     options={students}
                                     selectedOption={selectedStudent}
