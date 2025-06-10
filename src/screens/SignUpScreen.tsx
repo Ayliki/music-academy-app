@@ -5,7 +5,7 @@ import SignupForm from '../components/SignUp/SignupForm';
 import SignUpFormValues from '../components/SignUp/SignUpFormValues';
 import SignupVerificationForm from '../components/SignupVerficiationForm';
 import { auth } from '../services/firebaseConfig';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
@@ -91,24 +91,54 @@ const SignUpScreen: React.FC = () => {
                 codeVerified: true,
             });
 
-            await createUserWithEmailAndPassword(
-                auth,
-                tempEmail,
-                'someplaceholderpassword'
-            );
+            let authSuccess = false;
+            try {
+                // Try to create a new user
+                await createUserWithEmailAndPassword(
+                    auth,
+                    tempEmail,
+                    'someplaceholderpassword'
+                );
+                authSuccess = true;
+            } catch (authError: any) {
+                // If email already exists, sign in instead
+                if (authError.code === 'auth/email-already-in-use') {
+                    console.log('Email already exists, signing in instead');
+                    try {
+                        await signInWithEmailAndPassword(
+                            auth,
+                            tempEmail,
+                            'someplaceholderpassword'
+                        );
+                        authSuccess = true;
+                    } catch (signInError: any) {
+                        console.error('Error signing in:', signInError.message);
+                        return; // Exit the function if sign-in fails
+                    }
+                } else {
+                    // Rethrow other errors
+                    throw authError;
+                }
+            }
 
-            const rootRoute = role === 'administrator'
-                ? 'AdminMenu'
-                : 'Menu';
+            // Only proceed with navigation if authentication was successful
+            if (authSuccess) {
+                const rootRoute = role === 'administrator'
+                    ? 'AdminMenu'
+                    : 'Menu';
 
-            navigation.dispatch(
-                CommonActions.reset({
-                    index: 0,
-                    routes: [{ name: rootRoute }],
-                })
-            );
+                navigation.dispatch(
+                    CommonActions.reset({
+                        index: 0,
+                        routes: [{ name: rootRoute }],
+                    })
+                );
+            }
         } catch (error: any) {
-            console.error('Verification error:', error.message);
+            // Don't log the error if it's already been handled
+            if (error.code !== 'auth/email-already-in-use') {
+                console.error('Verification error:', error.message);
+            }
         } finally {
         }
     };

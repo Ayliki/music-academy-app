@@ -5,7 +5,7 @@ import ProfileScreen from 'src/screens/ProfileScreen';
 import EventsScreen from 'src/screens/EventsScreen';
 import ScheduleScreen from 'src/screens/ScheduleScreen';
 import TeachersScreen from '../screens/teachers/TeachersScreen';
-import UsersScreen from 'src/screens/UserScreen';
+import UsersScreen from '../screens/admins/UserScreen';
 import AdminApplicationsScreen from '../screens/admins/AdminAplicationScreen';
 
 export type AdminStackParamList = {
