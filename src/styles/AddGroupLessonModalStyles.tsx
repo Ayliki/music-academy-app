@@ -8,12 +8,12 @@ export const styles = StyleSheet.create({
         alignItems: 'center',
     },
     popup: {
-        width: '80%',
         backgroundColor: '#fff',
         borderRadius: 8,
         padding: 20,
         alignItems: 'center',
         minHeight: 300,
+        minWidth: 250,
     },
     closeButton: {
         alignSelf: 'flex-end',
