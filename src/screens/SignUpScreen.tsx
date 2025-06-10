@@ -32,7 +32,7 @@ const SignUpScreen: React.FC = () => {
 
     const navigation = useNavigation<NavigationProp>();
 
-    const { role } = useAuth();
+    const { role, setCodeVerified } = useAuth();
 
     // Step 1: Handle Sign-Up Process
     const handleSignUp = async (values: SignUpFormValues) => {
@@ -121,18 +121,11 @@ const SignUpScreen: React.FC = () => {
                 }
             }
 
-            // Only proceed with navigation if authentication was successful
+            // Only proceed with updating the code verification status if authentication was successful
             if (authSuccess) {
-                const rootRoute = role === 'administrator'
-                    ? 'AdminMenu'
-                    : 'Menu';
-
-                navigation.dispatch(
-                    CommonActions.reset({
-                        index: 0,
-                        routes: [{ name: rootRoute }],
-                    })
-                );
+                // Update the codeVerified state in the AuthContext
+                // This will trigger the AppNavigator to render the appropriate stack
+                setCodeVerified(true);
             }
         } catch (error: any) {
             // Don't log the error if it's already been handled
