@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { SafeAreaView, StyleSheet, ScrollView } from 'react-native';
+import { SafeAreaView, StyleSheet, ScrollView, Alert } from 'react-native';
 import Header from '../components/Header';
 import SignupForm from '../components/SignUp/SignupForm';
 import SignUpFormValues from '../components/SignUp/SignUpFormValues';
@@ -9,7 +9,7 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'fire
 import { CommonActions, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/types';
-import { doc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, getDoc } from 'firebase/firestore';
 import { db } from '../services/firebaseConfig';
 import { useAuth } from 'src/context/AuthContext';
 
@@ -37,16 +37,32 @@ const SignUpScreen: React.FC = () => {
     // Step 1: Handle Sign-Up Process
     const handleSignUp = async (values: SignUpFormValues) => {
         try {
+            const emailLowerCase = values.email.toLowerCase();
+
+            // Check if email already exists in users collection
+            const userDocRef = doc(db, 'users', emailLowerCase);
+            const userDocSnap = await getDoc(userDocRef);
+
+            if (userDocSnap.exists()) {
+                // Email already exists, show alert
+                Alert.alert(
+                    "Ошибка регистрации",
+                    "Этот email уже зарегистрирован в системе",
+                    [{ text: "OK" }]
+                );
+                return;
+            }
+
             setSignupData(values);
             setIsCodeStep(true);
-            setTempEmail(values.email.toLowerCase());
+            setTempEmail(emailLowerCase);
 
-            await setDoc(doc(db, 'users', values.email.toLowerCase()), {
+            await setDoc(doc(db, 'users', emailLowerCase), {
                 lastName: values.lastName,
                 firstName: values.firstName,
                 middleName: values.middleName,
                 phone: values.phone,
-                email: values.email.toLowerCase(),
+                email: emailLowerCase,
                 groupId: values.groupId,
                 subjectId: values.subjectId,
                 confirmed: false,

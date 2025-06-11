@@ -13,15 +13,15 @@ export const useAuth = () => {
 
     const sendLoginCode = async (email: string) => {
         try {
-            setIsLoading(true);
             // Check if user exists in Firestore
             const userDocRef = doc(db, 'users', email?.toLowerCase() || '');
             const userDoc = await getDoc(userDocRef);
-            if (!userDoc.exists) {
+            if (!userDoc.exists()) {
                 Alert.alert('Ошибка', 'Такой пользователь не зарегистрирован');
                 setIsLoading(false);
                 return;
             }
+            setIsLoading(true);
             // Send code via API
             const response = await fetch('https://sendemailcode-xjqcjc5s3a-uc.a.run.app', {
                 method: 'POST',

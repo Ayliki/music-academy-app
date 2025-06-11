@@ -30,11 +30,12 @@ export const useTeachers = (): {
         return () => unsubscribeSubjects();
     }, []);
 
-    // Подписка на коллекцию пользователей с ролью "teacher"
+    // Подписка на коллекцию пользователей с ролью "teacher" и подтвержденных
     useEffect(() => {
         const q = query(
             collection(db, "users"),
-            where("role", "==", "teacher")
+            where("role", "==", "teacher"),
+            where("confirmed", "==", true)
         );
 
         const unsubscribeTeachers = onSnapshot(q, (snapshot) => {
