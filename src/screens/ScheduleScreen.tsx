@@ -28,9 +28,16 @@ interface DateOption {
 
 const generateDateOptions = (baseDate: Date, rangeBefore: number, rangeAfter: number): DateOption[] => {
     const options: DateOption[] = [];
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
+
     for (let i = -rangeBefore; i <= rangeAfter; i++) {
         const d = new Date(baseDate);
         d.setDate(baseDate.getDate() + i);
+
+        // Skip dates earlier than today
+        if (d < today) continue;
+
         const iso = d.toISOString().split('T')[0]; // формат ГГГГ-ММ-ДД
         const display = d
             .toLocaleDateString('ru-RU', {weekday: 'short', day: 'numeric', month: 'long'})
@@ -208,7 +215,7 @@ const ScheduleScreen: React.FC = () => {
                 />
             </View>
 
-            {role === 'administrator' && (
+            {role === 'administrator' && selectedDateIso >= todayIso && (
                 <View style={styles.adminButtonsContainer}>
                     <TouchableOpacity
                         style={styles.blueButton}
@@ -226,7 +233,7 @@ const ScheduleScreen: React.FC = () => {
                 </View>
             )}
 
-            {role === 'administrator' && (
+            {role === 'administrator' && selectedDateIso >= todayIso && (
                 <AddGroupLessonModal
                     visible={isAddGroupLessonModalVisible}
                     onClose={() => setIsAddGroupLessonModalVisible(false)}
@@ -234,7 +241,7 @@ const ScheduleScreen: React.FC = () => {
                 />
             )}
 
-            {role === 'administrator' && (
+            {role === 'administrator' && selectedDateIso >= todayIso && (
                 <AddIndividualLessonModal
                     visible={isAddIndividualLessonModalVisible}
                     onClose={() => setIsAddIndividualLessonModalVisible(false)}

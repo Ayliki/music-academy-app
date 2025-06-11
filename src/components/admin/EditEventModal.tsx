@@ -170,6 +170,13 @@ const EditEventModal: React.FC<EditEventModalProps> = ({eventId, visible, onClos
             return;
         }
 
+        // Проверка, что дата и время не в прошлом
+        const now = new Date();
+        if (date < now) {
+            Alert.alert('Ошибка', 'Нельзя установить прошедшую дату и время');
+            return;
+        }
+
         setIsSaving(true);
         try {
             const eventRef = doc(db, 'events', eventId);

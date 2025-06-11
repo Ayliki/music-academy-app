@@ -283,6 +283,28 @@ const AddGroupLessonModal: React.FC<AddLessonModalProps> = ({date, visible, onCl
             return;
         }
 
+        // Проверка, что дата не в прошлом
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const lessonDate = new Date(date);
+        lessonDate.setHours(0, 0, 0, 0);
+        if (lessonDate < today) {
+            Alert.alert('Ошибка', 'Нельзя создать занятие на прошедшую дату');
+            return;
+        }
+
+        // Если дата сегодня, проверяем, что время не в прошлом
+        if (lessonDate.getTime() === today.getTime()) {
+            const now = new Date();
+            const lessonStartTime = new Date(date);
+            const [hours, minutes] = startTime.split(':').map(Number);
+            lessonStartTime.setHours(hours, minutes, 0, 0);
+            if (lessonStartTime < now) {
+                Alert.alert('Ошибка', 'Нельзя создать занятие на прошедшее время');
+                return;
+            }
+        }
+
         setLoading(true);
         try {
             const formattedDate = formatDate(date);
