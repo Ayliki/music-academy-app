@@ -103,7 +103,11 @@ const ProfileForm: React.FC<ProfileFormProps> = ({initialValues, onSubmit}) => {
     }
 
     return (
-        <Formik initialValues={initialValues} validationSchema={ProfileSchema} onSubmit={onSubmit}>
+        <Formik 
+            initialValues={initialValues} 
+            validationSchema={ProfileSchema} 
+            onSubmit={onSubmit}
+            enableReinitialize={true}>
             {({
                   handleChange,
                   handleBlur,

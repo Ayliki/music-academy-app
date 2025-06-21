@@ -67,6 +67,7 @@ const ProfileScreen: React.FC = () => {
                                 profilePicture: initialValues.profilePicture
                             };
                             await updateUserProfile(updatedValues);
+                            await refetch(); // Refresh user data after update
                             setIsAlertVisible(true);
                         } catch (error: any) {
                             console.error('Error saving profile:', error);
