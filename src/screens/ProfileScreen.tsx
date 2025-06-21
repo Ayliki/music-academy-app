@@ -62,7 +62,11 @@ const ProfileScreen: React.FC = () => {
                     initialValues={initialValues}
                     onSubmit={async (values) => {
                         try {
-                            await updateUserProfile(values);
+                            const updatedValues = {
+                                ...values,
+                                profilePicture: initialValues.profilePicture
+                            };
+                            await updateUserProfile(updatedValues);
                             setIsAlertVisible(true);
                         } catch (error: any) {
                             console.error('Error saving profile:', error);
