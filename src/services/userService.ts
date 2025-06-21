@@ -25,6 +25,8 @@ export const updateUserProfile = async (values: UserProfile): Promise<void> => {
     if (values.middleName !== undefined) dataToUpdate.middleName = values.middleName;
     if (values.phone !== undefined) dataToUpdate.phone = values.phone;
     if (values.profilePicture !== undefined) dataToUpdate.profilePicture = values.profilePicture;
+    if (values.groupId !== undefined) dataToUpdate.groupId = values.groupId;
+    if (values.subjectId !== undefined) dataToUpdate.subjectId = values.subjectId;
 
     await updateDoc(docRef, dataToUpdate);
 };
